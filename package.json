@@ -1,0 +1,26 @@
+{
+  "name": "hcredit",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build && next export",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^1.8.3",
+    "axios": "^0.27.2",
+    "next": "12.2.2",
+    "qrcode.react": "^3.1.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-redux": "^8.0.2",
+    "react-router-dom": "^6.3.0",
+    "react-select": "^5.4.0"
+  },
+  "devDependencies": {
+    "eslint": "8.19.0",
+    "eslint-config-next": "12.2.2"
+  }
+}
