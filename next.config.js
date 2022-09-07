@@ -4,8 +4,6 @@
 // }
 //
 // module.exports = nextConfig
-window.process = process.env
-
 module.exports = {
   // basePath: process.env.NEXT_PUBLIC_DIR,
   async rewrites () {
