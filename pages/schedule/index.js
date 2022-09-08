@@ -515,7 +515,7 @@ export default function schedule({api}) {
                                                                                className="management__coach-checkbox"
                                                                                id={"management__coach-checkbox-" + index}
                                                                                onChange={(e) => onChangeVisitCollaborator(e, collaborator.id)}
-                                                                               checked={Boolean(collaborator.marked)}/>
+                                                                               checked={Boolean(Number(collaborator.marked))}/>
                                                                         <span
                                                                             className="management__coach-checkmark"></span>
                                                                     </div>
