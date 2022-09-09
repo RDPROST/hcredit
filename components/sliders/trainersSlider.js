@@ -57,9 +57,6 @@ export default function TrainersSlider({slides}) {
                 }
             </div>
             <h1 className="management__coach-slider-item-title">О тренере</h1>
-            <p className="management__coach-slider-item-description">Текст-заполнитель — это текст, который
-                имеет некоторые характеристики реального письменного текста, но является случайным набором слов
-                или сгенерирован иным образом. Его можно использовать для отображения образца шрифтов, создания
-                текста для тестирования или обхода спам-фильтра.</p>
+            <p className="management__coach-slider-item-description" dangerouslySetInnerHTML={{__html: slides[slide].desc}}></p>
         </div>) : null
 }
