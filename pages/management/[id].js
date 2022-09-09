@@ -187,7 +187,11 @@ export default function Management({api}) {
         }
         await createFormData(form_data, data, "request_data").then(async () => {
             await api("/AddPersonToEventFromExcel", form_data).then(res => res.data).then(res => {
-                setDataCollaborator(res)
+                res.forEach(person =>{
+                    if (!JSON.stringify(dataCollaborator).includes(JSON.stringify(person))){
+                        setDataCollaborator([...dataCollaborator, person]);
+                    }
+                })
             })
         })
     }
