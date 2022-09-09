@@ -5,7 +5,7 @@
 //
 // module.exports = nextConfig
 module.exports = {
-  // basePath: process.env.NEXT_PUBLIC_DIR,
+  basePath: process.env.NEXT_PUBLIC_DIR,
   async rewrites () {
     return [
       {
