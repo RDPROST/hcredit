@@ -57,6 +57,6 @@ export default function TrainersSlider({slides}) {
                 }
             </div>
             <h1 className="management__coach-slider-item-title">О тренере</h1>
-            <p className="management__coach-slider-item-description" dangerouslySetInnerHTML={{__html: slides[slide].desc}}></p>
+            <p className="management__coach-slider-item-description" dangerouslySetInnerHTML={{__html: slides[slide]?.desc ? slides[slide].desc : "Описание отсутствует"}}></p>
         </div>) : null
 }
