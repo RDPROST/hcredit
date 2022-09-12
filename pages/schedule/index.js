@@ -281,7 +281,7 @@ export default function schedule({api}) {
                 ) : (
                     <>
                         <ContentImageBg img="/assets/images/schedule.jpeg"
-                                        title="Расписание" secret={process}/>
+                                        title="Расписание" bg={true}/>
                         <div className="schedule__filter">
                             <div className="info__group">
                                 <input type="text" placeholder="Поиск по активностям..."

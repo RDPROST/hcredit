@@ -81,7 +81,7 @@ export default function Activity({api}) {
     return (
         <>
             <FlexTwo className="white">
-                <ContentImageBg img="/assets/images/learn_activity.jpeg" title="Обучающие активности"/>
+                <ContentImageBg img="/assets/images/learn_activity.jpeg" title="Обучающие активности" bg={true}/>
                 <ContentTitle/>
                 <ContentText/>
                 <ContentSearch setActivitySearch={setActivitySearch} setTypeActivity={setTypeActivity} typeActivity={typeActivity}/>
