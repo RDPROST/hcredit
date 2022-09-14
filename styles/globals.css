@@ -919,10 +919,6 @@ input:focus{
   justify-content: space-between;
 }
 
-.management__group-file-item{
-  flex-basis: 45%;
-  width: 45%;
-}
 
 .management__file{
   opacity: 0;

@@ -5,6 +5,7 @@ import DefaultButton from "../button/defaultButton";
 import {useSelector} from "react-redux";
 import createFormData from "../../utils/createFormData";
 import loaderImg from "../../utils/loaderImg";
+import Loader from "../global/loader";
 
 export default function ContentBuild({person_fullname, person_firstname, person_id, person_lastname, addDataActivity, editDataActivity, action, setIsBuild, id, title, description, image, links, training_files, trainer_files, time, archive}) {
     let user_id = useSelector(state => state.user).userId
@@ -22,6 +23,7 @@ export default function ContentBuild({person_fullname, person_firstname, person_
     const [responsibleValue, setResponsibleValue] = useState()
     const [responsibleData, setResponsibleData] = useState([])
     const [isAlert, setIsAlert] = useState(false)
+    const [isSubmit, setIsSubmit] = useState(false)
 
     useEffect(() => {
         if (!selectedImage) {
@@ -71,6 +73,7 @@ export default function ContentBuild({person_fullname, person_firstname, person_
 
     const onSubmitForm = async (e) => {
         e.preventDefault()
+        setIsSubmit(true)
         let img
         let formData = new FormData(e.target)
         let form_data = new FormData();
@@ -108,10 +111,8 @@ export default function ContentBuild({person_fullname, person_firstname, person_
                 }
             })
         })
-
         setIsBuild(false)
-
-
+        setIsSubmit(false)
     }
 
     const onAddTrainingFile = async (e) => {
@@ -190,84 +191,89 @@ export default function ContentBuild({person_fullname, person_firstname, person_
             ) : null}
             <button className="info__cross" onClick={()=>setIsBuild(false)}><Image src={`/assets/images/icons/cross-file.svg`} width={9} height={9} alt=""/></button>
             <div className="info__title">{action === "create" ? "Создание" : "Редактирование"} обучающей активности</div>
-            <form className="info__wrapper" onSubmit={onSubmitForm}>
-                <label htmlFor="info__header" className="info__label">Добавить заголовок</label>
-                <input required type="text" id="info__header" placeholder="Не заполнено" className="info__input" defaultValue={title} name="title" />
+                  <form className="info__wrapper" onSubmit={onSubmitForm}>
+                      {isSubmit ? <Loader height={1500}/> : (
+                        <>
+                            <label htmlFor="info__header" className="info__label">Добавить заголовок</label>
+                            <input required type="text" id="info__header" placeholder="Не заполнено" className="info__input" defaultValue={title} name="title" />
 
-                <label htmlFor="info__desc" className="info__label">Добавить описание</label>
-                <textarea id="info__desc" required placeholder="Не заполнено" className="info__textarea" defaultValue={description} name="description" ></textarea>
-                <input type="file" id="info__img" className="info__file" onChange={onSelectFile} required={(!image)} accept="image/jpeg,image/png"/>
-                <label htmlFor="info__img" className="info__file-label">
-                    <span className="info__file-text">Выбрать изображение</span>
-                    <Image loader={loaderImg} src="/assets/images/icons/upload.svg" alt=""
-                           className="info__file-img" width={58} height={53}/>
-                </label>
-                {selectedImage?.data &&  <img src={preview} alt="" className="info__img"/> ||  <img src={image} alt="" className="info__img"/>}
+                            <label htmlFor="info__desc" className="info__label">Добавить описание</label>
+                            <textarea id="info__desc" required placeholder="Не заполнено" className="info__textarea" defaultValue={description} name="description" ></textarea>
+                            <input type="file" id="info__img" className="info__file" onChange={onSelectFile} required={(!image)} accept="image/jpeg,image/png"/>
+                            <label htmlFor="info__img" className="info__file-label">
+                                <span className="info__file-text">Выбрать изображение</span>
+                                <Image loader={loaderImg} src="/assets/images/icons/upload.svg" alt=""
+                                       className="info__file-img" width={58} height={53}/>
+                            </label>
+                            {selectedImage?.data &&  <img src={preview} alt="" className="info__img"/> ||  <img src={image} alt="" className="info__img"/>}
 
-                <label htmlFor="responsible" className="info__label">Добавить ответственного</label>
-                <input type="text" id="responsible" placeholder="Введите ФИО" list="info__responsible-list" className="info__input" defaultValue={person_fullname || user_fullname} disabled={action === "create"} value={responsibleValue} onChange={onChangeSearchResponsible} required/>
-                <datalist id="info__responsible-list">
-                    {responsibleData ? responsibleData.map((coach, index) => {
-                        return <option key={index} value={coach.fullname}>{coach.id}</option>
-                    }) : null}
-                </datalist>
-                <label htmlFor="info__time" className="info__label">Длительность активности, мин</label>
-                <input type="number" min="0" required id="info__time" placeholder="30" className="info__input" defaultValue={time} name="time" />
+                            <label htmlFor="responsible" className="info__label">Добавить ответственного</label>
+                            <input type="text" id="responsible" placeholder="Введите ФИО" list="info__responsible-list" className="info__input" defaultValue={person_fullname || user_fullname} disabled={action === "create"} value={responsibleValue} onChange={onChangeSearchResponsible} required/>
+                            <datalist id="info__responsible-list">
+                                {responsibleData ? responsibleData.map((coach, index) => {
+                                    return <option key={index} value={coach.fullname}>{coach.id}</option>
+                                }) : null}
+                            </datalist>
+                            <label htmlFor="info__time" className="info__label">Длительность активности, мин</label>
+                            <input type="number" min="0" required id="info__time" placeholder="30" className="info__input" defaultValue={time} name="time" />
 
-                <label className="info__label">Дотренинговые материалы</label>
-                <input type="file" id="info__pre-training" className="info__file" accept={acceptFiles}  onChange={onAddTrainingFile}/>
-                <label htmlFor="info__pre-training" className="info__file-label">
-                    <span className="info__file-text">Добавить файл</span>
-                    <Image loader={loaderImg} src="/assets/images/icons/upload.svg" alt="" className="info__file-img" width={58} height={53} />
-                </label>
-                <div className="info__files">
-                    {trainingFilesValue ? trainingFilesValue.map((file, index) => {
-                        return (<div className="description__file-block" key={index}>
-                                <a href={file.url || null} target="_blank" rel="noreferrer" className="description__file">
-                                    <Image src={`/assets/images/icons/file-${file.type}.svg`} alt="" width={45} height={45}/>
-                                </a>
-                                <button className="description__file-cross" onClick={()=>onRemoveTrainingFile(index)}><Image src={`/assets/images/icons/cross-file.svg`} width={9} height={9} alt=""/></button></div>
-                        )
-                    }) : null}
-                </div>
-
-                <label htmlFor="info__links" className="info__label">Добавить ссылки</label>
-                <input type="text" id="info__links" placeholder="Введите название" className="info__input" value={linkNameValue} onChange={(e) => setLinkNameValue(e.target.value || undefined) }/>
-                <div className="info__group">
-                    <input type="text" placeholder="Введите url" className="info__input" value={linkUrlValue} onChange={(e) => setLinkUrlValue(e.target.value || undefined)}/>
-                    <button className="info__btn" onClick={onClickAddLink} type={"button"}>Добавить</button>
-                </div>
-
-                <div className="info__links-block">
-                    {linksValue ? linksValue.map((link, index) => {
-                        return (
-                            <div className="info__links-item" key={index}>
-                                <a href={link.url} className="info__links-text" target="_blank" rel="noreferrer">{link.name}</a>
-                                <button className="info__links-btn" onClick={() => onClickRemoveLink(index)}>Удалить</button>
+                            <label className="info__label">Дотренинговые материалы</label>
+                            <input type="file" id="info__pre-training" className="info__file" accept={acceptFiles}  onChange={onAddTrainingFile}/>
+                            <label htmlFor="info__pre-training" className="info__file-label">
+                                <span className="info__file-text">Добавить файл</span>
+                                <Image loader={loaderImg} src="/assets/images/icons/upload.svg" alt="" className="info__file-img" width={58} height={53} />
+                            </label>
+                            <div className="info__files">
+                                {trainingFilesValue ? trainingFilesValue.map((file, index) => {
+                                    return (<div className="description__file-block" key={index}>
+                                          <a href={file.url || null} target="_blank" rel="noreferrer" className="description__file">
+                                              <Image src={`/assets/images/icons/file-${file.type}.svg`} alt="" width={45} height={45}/>
+                                          </a>
+                                          <button className="description__file-cross" onClick={()=>onRemoveTrainingFile(index)}><Image src={`/assets/images/icons/cross-file.svg`} width={9} height={9} alt=""/></button></div>
+                                    )
+                                }) : null}
                             </div>
-                        )
-                    }) : null}
-                </div>
 
-                <label className="info__label">Материалы для тренера</label>
-                <input type="file" id="info__train" className="info__file" accept={acceptFiles} onChange={onAddTrainerFile}/>
-                <label htmlFor="info__train" className="info__file-label">
-                    <span className="info__file-text">Добавить файл</span>
-                    <Image loader={loaderImg} src="/assets/images/icons/upload.svg" alt="" className="info__file-img" width={58} height={53}/>
-                </label>
-                <div className="info__files">
-                    {trainerFilesValue ? trainerFilesValue.map((file, index) => {
-                        return (<div className="description__file-block" key={index}><a href={file.url || null} className="description__file" target="_blank" rel="noreferrer">
-                            <Image src={`/assets/images/icons/file-${file.type}.svg`} alt="" width={45} height={45}/></a>
-                            <button className="description__file-cross" onClick={()=>onRemoveTrainerFile(index)}><Image src={`/assets/images/icons/cross-file.svg`} width={9} height={9} alt=""/></button>
-                        </div>)
-                    }) : null}
-                </div>
-                <div className="info__btns">
-                    <DefaultButton className="info__button info__button-gray" text={archive ? "Действующая" : "В архив"} onClick={onClickChangeState} type={"button"}  disabled={action === "create"}/>
-                    <DefaultButton className="info__button" text="Сохранить"/>
-                </div>
-            </form>
+                            <label htmlFor="info__links" className="info__label">Добавить ссылки</label>
+                            <input type="text" id="info__links" placeholder="Введите название" className="info__input" value={linkNameValue} onChange={(e) => setLinkNameValue(e.target.value || undefined) }/>
+                            <div className="info__group">
+                                <input type="text" placeholder="Введите url" className="info__input" value={linkUrlValue} onChange={(e) => setLinkUrlValue(e.target.value || undefined)}/>
+                                <button className="info__btn" onClick={onClickAddLink} type={"button"}>Добавить</button>
+                            </div>
+
+                            <div className="info__links-block">
+                                {linksValue ? linksValue.map((link, index) => {
+                                    return (
+                                      <div className="info__links-item" key={index}>
+                                          <a href={link.url} className="info__links-text" target="_blank" rel="noreferrer">{link.name}</a>
+                                          <button className="info__links-btn" onClick={() => onClickRemoveLink(index)}>Удалить</button>
+                                      </div>
+                                    )
+                                }) : null}
+                            </div>
+
+                            <label className="info__label">Материалы для тренера</label>
+                            <input type="file" id="info__train" className="info__file" accept={acceptFiles} onChange={onAddTrainerFile}/>
+                            <label htmlFor="info__train" className="info__file-label">
+                                <span className="info__file-text">Добавить файл</span>
+                                <Image loader={loaderImg} src="/assets/images/icons/upload.svg" alt="" className="info__file-img" width={58} height={53}/>
+                            </label>
+                            <div className="info__files">
+                                {trainerFilesValue ? trainerFilesValue.map((file, index) => {
+                                    return (<div className="description__file-block" key={index}><a href={file.url || null} className="description__file" target="_blank" rel="noreferrer">
+                                        <Image src={`/assets/images/icons/file-${file.type}.svg`} alt="" width={45} height={45}/></a>
+                                        <button className="description__file-cross" onClick={()=>onRemoveTrainerFile(index)}><Image src={`/assets/images/icons/cross-file.svg`} width={9} height={9} alt=""/></button>
+                                    </div>)
+                                }) : null}
+                            </div>
+                            <div className="info__btns">
+                                <DefaultButton className="info__button info__button-gray" text={archive ? "Действующая" : "В архив"} onClick={onClickChangeState} type={"button"}  disabled={action === "create"}/>
+                                <DefaultButton className="info__button" text="Сохранить"/>
+                            </div>
+                        </>
+                      )}
+
+                  </form>
         </div>
     )
 }

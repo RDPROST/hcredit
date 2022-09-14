@@ -34,6 +34,7 @@ export default function schedule({api}) {
     const [isLoadingList, setIsLoadingList] = useState(false);
     const scheduleList = useRef(null);
     const [maxHeight, setMaxHeight] = useState(450);
+    const [isExportingList, setIsExportingList] = useState(false);
 
     const dataStatus = [
         {
@@ -104,10 +105,12 @@ export default function schedule({api}) {
     }
 
     const onClickExportListCollaborators = () => {
+        setIsExportingList(true)
         api("/ExportListCollaboratorsFromEvent", JSON.stringify({
             event_id: schedule.id
         })).then(res => {
             window.open(res.data, "_blank")
+            setIsExportingList(false)
         })
     }
 
@@ -498,32 +501,34 @@ export default function schedule({api}) {
                                                 </svg>
                                             </div>
                                             <div className="management__coach-block schedule__collaborators-block">
-                                                {visitCollaborator.map((collaborator, index) => {
-                                                    return (
-                                                        <label key={index}
-                                                               htmlFor={"management__coach-checkbox-" + index}>
-                                                            <div key={index} className="management__coach-item">
-                                                                {(collaborator.avatar?.length > 0) ?
-                                                                  <Image loader={loaderImgUrl} src={collaborator?.url || collaborator?.avatar} alt="" className="management__coach-img" width={35} height={35}/>
-                                                                  : <div className="management__coach-noavatar"
-                                                                           style={{"background": collaborator?.gender === "m" ? "#315B7C" : "#FF5561"}}>{collaborator.firstname[0]}{collaborator.lastname[0]}</div>}
-                                                                <p className="management__coach-text"
-                                                                   rel="noreferrer">{collaborator.firstname} {collaborator.lastname}</p>
-                                                                {role !== "student" ? (
-                                                                    <div className="management__block-checkbox">
-                                                                        <input type="checkbox"
-                                                                               className="management__coach-checkbox"
-                                                                               id={"management__coach-checkbox-" + index}
-                                                                               onChange={(e) => onChangeVisitCollaborator(e, collaborator.id)}
-                                                                               checked={Boolean(Number(collaborator.marked))}/>
-                                                                        <span
+                                                {isExportingList ? <Loader height={150} /> :
+                                                  visitCollaborator.map((collaborator, index) => {
+                                                          return (
+                                                            <label key={index}
+                                                                   htmlFor={"management__coach-checkbox-" + index}>
+                                                                <div key={index} className="management__coach-item">
+                                                                    {(collaborator.avatar?.length > 0) ?
+                                                                      <Image loader={loaderImgUrl} src={collaborator?.url || collaborator?.avatar} alt="" className="management__coach-img" width={35} height={35}/>
+                                                                      : <div className="management__coach-noavatar"
+                                                                             style={{"background": collaborator?.gender === "m" ? "#315B7C" : "#FF5561"}}>{collaborator.firstname[0]}{collaborator.lastname[0]}</div>}
+                                                                    <p className="management__coach-text"
+                                                                       rel="noreferrer">{collaborator.firstname} {collaborator.lastname}</p>
+                                                                    {role !== "student" ? (
+                                                                      <div className="management__block-checkbox">
+                                                                          <input type="checkbox"
+                                                                                 className="management__coach-checkbox"
+                                                                                 id={"management__coach-checkbox-" + index}
+                                                                                 onChange={(e) => onChangeVisitCollaborator(e, collaborator.id)}
+                                                                                 checked={Boolean(Number(collaborator.marked))}/>
+                                                                          <span
                                                                             className="management__coach-checkmark"></span>
-                                                                    </div>
-                                                                ) : null}
-                                                            </div>
-                                                        </label>
-                                                    )
-                                                })}
+                                                                      </div>
+                                                                    ) : null}
+                                                                </div>
+                                                            </label>
+                                                          )
+                                                      })
+                                                }
                                             </div>
                                             {role !== "student" ? (
                                                 <button className="button schedule__btn schedule__btn-gray"
