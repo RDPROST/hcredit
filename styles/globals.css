@@ -1504,7 +1504,7 @@ label{
   position: relative;
 }
 
-.management__coach-noavatar:hover::after, schedule__img:hover::after {
+.management__coach-noavatar:hover::after, .schedule__img:hover::after {
   content: attr(data-title);
   position: absolute;
   right: 120%;
