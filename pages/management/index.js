@@ -300,7 +300,7 @@ export default function Management({api}) {
                                               </label>
                                           </div>
                                           <div className="management__group-file-item">
-                                              <a href={dataActivities.sample_id} className="management__file-label" onClick={dataActivities.sample_id == "" ? (e)=>e.preventDefault() : ""}>
+                                              <a href={dataActivities.sample_id} className="management__file-label" onClick={dataActivities.sample_id == "" ? (e)=>e.preventDefault() : null}>
                                                   <span className="management__file-text">{dataActivities.sample_id == "" ? "Нет Excel образца": "Скачать образец"}</span>
                                                   <Image loader={loaderImg} src="/assets/images/icons/upload.svg" alt=""
                                                          className="management__file-img" width={58} height={53}/>
