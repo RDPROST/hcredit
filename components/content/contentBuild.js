@@ -139,12 +139,14 @@ export default function ContentBuild({person_fullname, person_firstname, person_
         setTrainerFilesValue([...trainerFilesValue, obj])
     }
 
-    const onRemoveTrainingFile = (index) => {
+    const onRemoveTrainingFile = (event, index) => {
+        event.preventDefault();
         trainingFilesValue.splice(index, 1)
         setTrainingFilesValue([...trainingFilesValue])
     }
 
-    const onRemoveTrainerFile = (index) => {
+    const onRemoveTrainerFile = (event, index) => {
+        event.preventDefault();
         trainerFilesValue.splice(index, 1)
         setTrainerFilesValue([...trainerFilesValue])
     }
@@ -229,7 +231,7 @@ export default function ContentBuild({person_fullname, person_firstname, person_
                                           <a href={file.url || null} target="_blank" rel="noreferrer" className="description__file">
                                               <Image src={`/assets/images/icons/file-${file.type}.svg`} alt="" width={45} height={45}/>
                                           </a>
-                                          <button className="description__file-cross" onClick={()=>onRemoveTrainingFile(index)}><Image src={`/assets/images/icons/cross-file.svg`} width={9} height={9} alt=""/></button></div>
+                                          <button className="description__file-cross" onClick={(e)=>onRemoveTrainingFile(e, index)}><Image src={`/assets/images/icons/cross-file.svg`} width={9} height={9} alt=""/></button></div>
                                     )
                                 }) : null}
                             </div>
@@ -262,7 +264,7 @@ export default function ContentBuild({person_fullname, person_firstname, person_
                                 {trainerFilesValue ? trainerFilesValue.map((file, index) => {
                                     return (<div className="description__file-block" key={index}><a href={file.url || null} className="description__file" target="_blank" rel="noreferrer">
                                         <Image src={`/assets/images/icons/file-${file.type}.svg`} alt="" width={45} height={45}/></a>
-                                        <button className="description__file-cross" onClick={()=>onRemoveTrainerFile(index)}><Image src={`/assets/images/icons/cross-file.svg`} width={9} height={9} alt=""/></button>
+                                        <button className="description__file-cross" onClick={(e)=>onRemoveTrainerFile(e, index)}><Image src={`/assets/images/icons/cross-file.svg`} width={9} height={9} alt=""/></button>
                                     </div>)
                                 }) : null}
                             </div>
