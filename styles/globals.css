@@ -1499,3 +1499,22 @@ label{
   min-height: 50px;
   border-radius: 10px;
 }
+
+.management__coach-noavatar, .schedule__img{
+  position: relative;
+}
+
+.management__coach-noavatar:hover::after, schedule__img:hover::after {
+  content: attr(data-title);
+  position: absolute;
+  right: 120%;
+  z-index: 99;
+  background: #FFF;
+  border-radius: 5px;
+  font-size: 12px;
+  padding: 5px 10px;
+  border: 1px solid #D6DBE0;
+  color: #315B7C;
+  width: 150px;
+  text-align: center;
+}

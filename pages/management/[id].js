@@ -26,6 +26,8 @@ export default function Management({api}) {
     const [searchActivity, setSearchActivity] = useState("");
     const [isSearchCoach, setIsSearchCoach] = useState(false)
     const [isSearchCollaborator, setIsSearchCollaborator] = useState(false)
+    const [excelChange, setExcelChange] = useState(false);
+
     useEffect(() => {
         const data = async () => {
             return await api("/GetInfoForCreateEvent")
@@ -175,6 +177,7 @@ export default function Management({api}) {
     }
 
     const onChangeExcelCollaborator = async (e) => {
+        setExcelChange(true);
         const file = e.target.files[0];
         let form_data = new FormData()
         let data = {
@@ -192,6 +195,8 @@ export default function Management({api}) {
                         setDataCollaborator([...dataCollaborator, person]);
                     }
                 })
+                setExcelChange(false);
+
             })
         })
     }
@@ -311,10 +316,10 @@ export default function Management({api}) {
                                             </label>
                                         </div>
                                         <div className="management__group-file-item">
-                                            <a href={dataActivities.sample_id} className="management__file-label">
-                                                <span className="management__file-text">Скачать образец</span>
+                                            <a href={dataActivities.sample_id} className="management__file-label" onClick={dataActivities.sample_id == "" ? (e)=>e.preventDefault() : ""}>
+                                                <span className="management__file-text">{dataActivities.sample_id == "" ? "Нет Excel образца": "Скачать образец"}</span>
                                                 <Image loader={loaderImg} src="/assets/images/icons/upload.svg" alt=""
-                                                     className="management__file-img" width={58} height={53}/>
+                                                       className="management__file-img" width={58} height={53}/>
                                             </a>
                                         </div>
                                     </div>
@@ -331,6 +336,7 @@ export default function Management({api}) {
             </FlexTwo>
             <FlexOne className={dataCollaborator.length > 0 || dataCoach.length > 0 ? "white" : ""}>
                 <TrainersSlider slides={dataCoach}/>
+                {excelChange ? <Loader height={150} /> : null}
 
                 {dataCollaborator.length > 0 ? (
                     <>

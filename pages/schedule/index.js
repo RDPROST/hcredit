@@ -390,8 +390,8 @@ export default function schedule({api}) {
                                                         api={api} setStatusSchedule={setStatusSchedule}/>
                                         {item.trainer[0]?.avatar ?
                                             <Image loader={loaderImgUrl} className="schedule__img" src={item.trainer[0]?.avatar} alt=""
-                                                 width={35} height={35}/> : <div className="management__coach-noavatar"
-                                                                                 style={{"background": item.trainer[0]?.gender === "m" ? "#315B7C" : "#FF5561"}}>{item.trainer[0]?.firstname[0]}{item.trainer[0]?.lastname[0]}</div>}
+                                                 width={35} height={35} data-title={item.trainer[0]?.fullname}/> : <div className="management__coach-noavatar"
+                                                                                 style={{"background": item.trainer[0]?.gender === "m" ? "#315B7C" : "#FF5561"}} data-title={item.trainer[0]?.fullname}>{item.trainer[0]?.firstname[0]}{item.trainer[0]?.lastname[0]}</div>}
                                     </div>
                                 )
                             }) : (
