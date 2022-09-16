@@ -30,6 +30,8 @@ export default function Edit({api}) {
     const [isSearchCoach, setIsSearchCoach] = useState(false)
     const [isSearchCollaborator, setIsSearchCollaborator] = useState(false)
     const [excelChange, setExcelChange] = useState(false);
+    const [isSubmit, setIsSubmit] = useState(false)
+
 
     useEffect(() => {
         let event;
@@ -136,6 +138,7 @@ export default function Edit({api}) {
 
     const onSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmit(true)
         const formData = new FormData(e.target);
         const form_data = new FormData();
         const file = formData.get("file");
@@ -169,6 +172,7 @@ export default function Edit({api}) {
                 } else {
                     alert("Ошибка при добавлении записи");
                 }
+                setIsSubmit(false)
             }).catch(err => console.log(err))
         })
     }
@@ -222,42 +226,44 @@ export default function Edit({api}) {
     return (
         <>
             <FlexTwo className="white">
-                <ManagementChoice activeChoice={activeChoice} setActiveChoice={setActiveChoice}/>
-                {activeChoice === 3 ?
-                    (
-                        <>
-                            <div className="management__build">
-                                <form action="#" className="management__form" onSubmit={onSubmit}>
-                                    <label htmlFor="management__activity" className="management__title">Выбрать
-                                        обучающую
-                                        активность</label>
-                                    <input type="text" placeholder="Не заполнено..." id="management__coach" list="management__activity-list" className="management__input" defaultValue={searchActivity} value={searchActivity} onChange={onChangeSearchActivity} name="activity"/>
-                                    <datalist id="management__activity-list">
-                                        {dataActivities ? dataActivities.data?.map((activity, index) => {
-                                            return <option key={index} value={activity.title}>{activity.id}</option>
-                                        }) : null}
-                                    </datalist>
-                                    <label htmlFor="management__coach" className="management__title">Назначить
-                                        тренера</label>
-                                    <div className="management__group">
-                                        <input autoComplete="off" type="text" placeholder="Введите ФИО"
-                                               id="management__coach"
-                                               list="management__coach-list" className="management__input"
-                                               defaultValue={searchCoach} value={searchCoach}
-                                               onChange={onChangeSearchCoach} onKeyDown={onClickAddCoach}/>
-                                        <datalist id="management__coach-list">
-                                            {dataSearchCoach ? dataSearchCoach.map((coach, index) => {
-                                                return <option key={index} value={coach.fullname}>{coach.id}</option>
-                                            }) : null}
-                                        </datalist>
-                                        <button className="management__btn" type={"button"}
-                                                onClick={onClickAddCoach}>
-                                            {isSearchCoach ? <Loader minLoader={true} height={50}/> : "Добавить"}
-                                        </button>
-                                    </div>
-                                    <div className="management__coach-block">
-                                        {dataCoach ? dataCoach.map((coach, index) => {
-                                            return (
+                {isSubmit ? <Loader height={1250} /> : (
+                  <>
+                      <ManagementChoice activeChoice={activeChoice} setActiveChoice={setActiveChoice}/>
+                      {activeChoice === 3 ?
+                        (
+                          <>
+                              <div className="management__build">
+                                  <form action="#" className="management__form" onSubmit={onSubmit}>
+                                      <label htmlFor="management__activity" className="management__title">Выбрать
+                                          обучающую
+                                          активность</label>
+                                      <input type="text" placeholder="Не заполнено..." id="management__coach" list="management__activity-list" className="management__input" defaultValue={searchActivity} value={searchActivity} onChange={onChangeSearchActivity} name="activity"/>
+                                      <datalist id="management__activity-list">
+                                          {dataActivities ? dataActivities.data?.map((activity, index) => {
+                                              return <option key={index} value={activity.title}>{activity.id}</option>
+                                          }) : null}
+                                      </datalist>
+                                      <label htmlFor="management__coach" className="management__title">Назначить
+                                          тренера</label>
+                                      <div className="management__group">
+                                          <input autoComplete="off" type="text" placeholder="Введите ФИО"
+                                                 id="management__coach"
+                                                 list="management__coach-list" className="management__input"
+                                                 defaultValue={searchCoach} value={searchCoach}
+                                                 onChange={onChangeSearchCoach} onKeyDown={onClickAddCoach}/>
+                                          <datalist id="management__coach-list">
+                                              {dataSearchCoach ? dataSearchCoach.map((coach, index) => {
+                                                  return <option key={index} value={coach.fullname}>{coach.id}</option>
+                                              }) : null}
+                                          </datalist>
+                                          <button className="management__btn" type={"button"}
+                                                  onClick={onClickAddCoach}>
+                                              {isSearchCoach ? <Loader minLoader={true} height={50}/> : "Добавить"}
+                                          </button>
+                                      </div>
+                                      <div className="management__coach-block">
+                                          {dataCoach ? dataCoach.map((coach, index) => {
+                                              return (
                                                 <div key={index} className="management__coach-item">
                                                     <p className="management__coach-text"
                                                        rel="noreferrer">{coach.fullname}</p>
@@ -265,115 +271,118 @@ export default function Edit({api}) {
                                                             onClick={() => onClickRemoveCoach(coach.id)} type="button">Удалить
                                                     </button>
                                                 </div>
-                                            )
-                                        }) : null}
-                                    </div>
-                                    <label htmlFor="management__chanel" className="management__title">Выбрать канал
-                                        связи</label>
-                                    <input type="text" placeholder="Вставить ссылку..." id="management__chanel"
-                                           className="management__input" name="link" defaultValue={dataEvent.qrcode_link} required/>
-                                    <div className="management__group-comp">
-                                        <div className="management__group-item">
-                                            <label htmlFor="management__date" className="management__title" >Выбрать
-                                                дату</label>
-                                            <input type="date" id="management__date" className="management__input"
-                                                   name="date" required defaultValue={dataEvent.start_date?.split(".").join("-")} />
-                                        </div>
-                                        <div className="management__group-item">
-                                            <label htmlFor="management__time" className="management__title">Указать
-                                                время</label>
-                                            <input type="time" id="management__time" className="management__input"
-                                                   name="time" required defaultValue={dataEvent.start_time}/>
-                                        </div>
-                                        <div className="management__group-item">
-                                            <label htmlFor="management__places" className="management__title">Кол-во
-                                                мест</label>
-                                            <input type="number" id="management__places" className="management__input"
-                                                    placeholder="30" name="places" min="0" defaultValue={dataEvent.places} required/>
-                                        </div>
-                                    </div>
-                                    <label htmlFor="management__collaborator" className="management__title">Записать
-                                        сотрудников</label>
-                                    <div className="management__group">
-                                        <input autoComplete="off" type="text" list="management__collaborator-list"
-                                               defaultValue={searchCollaborator} value={searchCollaborator}
-                                               id="management__collaborator" className="management__input"
-                                               placeholder="Поиск по  ФИО или e-mail"
-                                               onChange={onChangeSearchCollaborator}
-                                               onKeyDown={onClickAddCollaborator}/>
-                                        <datalist id="management__collaborator-list">
-                                            {dataSearchCollaborator ? dataSearchCollaborator.map((collaborator, index) => {
-                                                return <option key={index}
-                                                               value={collaborator.fullname}>{collaborator.id}</option>
-                                            }) : null}
-                                        </datalist>
-                                        <button className="management__btn" type={"button"}
-                                                onClick={onClickAddCollaborator}>
-                                            {isSearchCollaborator ? <Loader minLoader={true} height={50}/> : "Добавить"}
-                                        </button>
-                                    </div>
+                                              )
+                                          }) : null}
+                                      </div>
+                                      <label htmlFor="management__chanel" className="management__title">Выбрать канал
+                                          связи</label>
+                                      <input type="text" placeholder="Вставить ссылку..." id="management__chanel"
+                                             className="management__input" name="link" defaultValue={dataEvent.qrcode_link} required/>
+                                      <div className="management__group-comp">
+                                          <div className="management__group-item">
+                                              <label htmlFor="management__date" className="management__title" >Выбрать
+                                                  дату</label>
+                                              <input type="date" id="management__date" className="management__input"
+                                                     name="date" required defaultValue={dataEvent.start_date?.split(".").join("-")} />
+                                          </div>
+                                          <div className="management__group-item">
+                                              <label htmlFor="management__time" className="management__title">Указать
+                                                  время</label>
+                                              <input type="time" id="management__time" className="management__input"
+                                                     name="time" required defaultValue={dataEvent.start_time}/>
+                                          </div>
+                                          <div className="management__group-item">
+                                              <label htmlFor="management__places" className="management__title">Кол-во
+                                                  мест</label>
+                                              <input type="number" id="management__places" className="management__input"
+                                                     placeholder="30" name="places" min="0" defaultValue={dataEvent.places} required/>
+                                          </div>
+                                      </div>
+                                      <label htmlFor="management__collaborator" className="management__title">Записать
+                                          сотрудников</label>
+                                      <div className="management__group">
+                                          <input autoComplete="off" type="text" list="management__collaborator-list"
+                                                 defaultValue={searchCollaborator} value={searchCollaborator}
+                                                 id="management__collaborator" className="management__input"
+                                                 placeholder="Поиск по  ФИО или e-mail"
+                                                 onChange={onChangeSearchCollaborator}
+                                                 onKeyDown={onClickAddCollaborator}/>
+                                          <datalist id="management__collaborator-list">
+                                              {dataSearchCollaborator ? dataSearchCollaborator.map((collaborator, index) => {
+                                                  return <option key={index}
+                                                                 value={collaborator.fullname}>{collaborator.id}</option>
+                                              }) : null}
+                                          </datalist>
+                                          <button className="management__btn" type={"button"}
+                                                  onClick={onClickAddCollaborator}>
+                                              {isSearchCollaborator ? <Loader minLoader={true} height={50}/> : "Добавить"}
+                                          </button>
+                                      </div>
 
 
-                                    <label htmlFor="management__activity" className="management__title">Или загрузить
-                                        список</label>
-                                    <div className="management__group-file">
-                                        <div className="management__group-file-item">
-                                            <input type="file" id="management__excel" className="management__file"
-                                                   name="file"
-                                                   accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                                   onChange={onChangeExcelCollaborator}/>
-                                            <label htmlFor="management__excel" className="management__file-label">
-                                                <span className="management__file-text">Выбрать Excel файл</span>
-                                                <Image loader={loaderImg} src="/assets/images/icons/upload.svg" alt=""
-                                                     className="management__file-img" width={58} height={53}/>
-                                            </label>
-                                        </div>
-                                        <div className="management__group-file-item">
-                                            <a href={dataActivities.sample_id} className="management__file-label" onClick={dataActivities.sample_id == "" ? (e)=>e.preventDefault() : ""}>
-                                                <span className="management__file-text">{dataActivities.sample_id == "" ? "Нет Excel образца": "Скачать образец"}</span>
-                                                <Image loader={loaderImg} src="/assets/images/icons/upload.svg" alt=""
-                                                       className="management__file-img" width={58} height={53}/>
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <div className="management__btns">
-                                        <DefaultButton className="management__button management__button-gray"
-                                                       text="Очистить список участников"
-                                                       onClick={onClickRemoveAllCollaborator}
-                                                       type="button"/>
-                                        <DefaultButton className="management__button" text="Сохранить" type={"submit"}/>
-                                    </div>
-                                </form>
-                            </div>
-                        </>) : <h1>В разработке</h1>}
+                                      <label htmlFor="management__activity" className="management__title">Или загрузить
+                                          список</label>
+                                      <div className="management__group-file">
+                                          <div className="management__group-file-item">
+                                              <input type="file" id="management__excel" className="management__file"
+                                                     name="file"
+                                                     accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                                     onChange={onChangeExcelCollaborator}/>
+                                              <label htmlFor="management__excel" className="management__file-label">
+                                                  <span className="management__file-text">Выбрать Excel файл</span>
+                                                  <Image loader={loaderImg} src="/assets/images/icons/upload.svg" alt=""
+                                                         className="management__file-img" width={58} height={53}/>
+                                              </label>
+                                          </div>
+                                          <div className="management__group-file-item">
+                                              <a href={dataActivities.sample_id} className="management__file-label" onClick={dataActivities.sample_id == "" ? (e)=>e.preventDefault() : ""}>
+                                                  <span className="management__file-text">{dataActivities.sample_id == "" ? "Нет Excel образца": "Скачать образец"}</span>
+                                                  <Image loader={loaderImg} src="/assets/images/icons/upload.svg" alt=""
+                                                         className="management__file-img" width={58} height={53}/>
+                                              </a>
+                                          </div>
+                                      </div>
+                                      <div className="management__btns">
+                                          <DefaultButton className="management__button management__button-gray"
+                                                         text="Очистить список участников"
+                                                         onClick={onClickRemoveAllCollaborator}
+                                                         type="button"/>
+                                          <DefaultButton className="management__button" text="Сохранить" type={"submit"}/>
+                                      </div>
+                                  </form>
+                              </div>
+                          </>) : <h1>В разработке</h1>}
+                  </>
+                  )}
+
             </FlexTwo>
-            <FlexOne className={dataCollaborator.length > 0 || dataCoach.length > 0 ? "white" : ""}>
+            {isSubmit ? <FlexOne/> :  <FlexOne className={dataCollaborator.length > 0 || dataCoach.length > 0 ? "white" : ""}>
                 <TrainersSlider slides={dataCoach}/>
                 {excelChange ? <Loader height={150} /> : null}
                 {dataCollaborator.length > 0 ? (
-                    <>
-                        <p className="management__title">Список участников ({dataCollaborator.length || 0})</p>
-                        <div className="management__coach-block">
-                            {dataCollaborator.map((collaborator, index) => {
-                                return (
-                                    <div key={index} className="management__coach-item">
-                                        {(collaborator.avatar?.length > 0) ?
-                                          <Image loader={loaderImgUrl} src={collaborator?.url || collaborator?.avatar} alt="" className="management__coach-img" width={35} height={35}/>
-                                            : <div className="management__coach-noavatar"
-                                                   style={{"background": collaborator.gender === "m" ? "#315B7C" : "#FF5561"}}>{collaborator.firstname[0]}{collaborator.lastname[0]}</div>}
-                                        <p className="management__coach-text"
-                                           rel="noreferrer">{collaborator.firstname} {collaborator.lastname}</p>
-                                        <button className="management__coach-btn"
-                                                onClick={() => onClickRemoveCollaborator(collaborator.id)} type="button">Удалить
-                                        </button>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </>
+                  <>
+                      <p className="management__title">Список участников ({dataCollaborator.length || 0})</p>
+                      <div className="management__coach-block">
+                          {dataCollaborator.map((collaborator, index) => {
+                              return (
+                                <div key={index} className="management__coach-item">
+                                    {(collaborator.avatar?.length > 0) ?
+                                      <Image loader={loaderImgUrl} src={collaborator?.url || collaborator?.avatar} alt="" className="management__coach-img" width={35} height={35}/>
+                                      : <div className="management__coach-noavatar"
+                                             style={{"background": collaborator.gender === "m" ? "#315B7C" : "#FF5561"}}>{collaborator.firstname[0]}{collaborator.lastname[0]}</div>}
+                                    <p className="management__coach-text"
+                                       rel="noreferrer">{collaborator.firstname} {collaborator.lastname}</p>
+                                    <button className="management__coach-btn"
+                                            onClick={() => onClickRemoveCollaborator(collaborator.id)} type="button">Удалить
+                                    </button>
+                                </div>
+                              )
+                          })}
+                      </div>
+                  </>
                 ) : null}
 
-            </FlexOne>
+            </FlexOne>}
         </>
     )
 }
