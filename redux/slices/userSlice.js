@@ -5,7 +5,7 @@ const initialState = {
     firstname: null,
     lastname: null,
     fullname: null,
-    avatar: "/assets/images/nophoto.jpg",
+    avatar: null,
     org: null,
     role: null,
     signedIn: false,

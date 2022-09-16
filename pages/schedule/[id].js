@@ -17,7 +17,7 @@ export default function schedule({api}) {
     /* eslint-disable react-hooks/rules-of-hooks */
     const router = useRouter();
     const {id} = router.query;
-    const {role} = useSelector(state => state.user);
+    const {userId, role, firstname, lastname, avatar, gender} = useSelector(state => state.user);
     const [dataEnroll, setDataEnroll] = useState([]);
     const [schedule, setSchedule] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -51,12 +51,21 @@ export default function schedule({api}) {
             })).then((res) => {
                 setPopupEnroll(false)
                 if (res.data?.error){
-                    // alert(res.data.error)
                     setIsAlert(true)
                 } else {
                     alert("Успешно записан")
+                    if (eventId === schedule.id) {
+                        let scheduleEdit = schedule;
+                        scheduleEdit.collaborators.push({
+                            id: userId,
+                            firstname: firstname,
+                            lastname: lastname,
+                            avatar: avatar,
+                            gender: gender
+                        })
+                        setSchedule(scheduleEdit)
+                    }
                 }
-
             })
         }
         if (status === "уже записан") {
@@ -88,7 +97,16 @@ export default function schedule({api}) {
             setEditStatus(!editStatus)
             setRemoveEventId("")
             alert("Успешно отписан")
+            if (removeEventId === schedule.id) {
+                let scheduleEdit = schedule;
+                scheduleEdit.collaborators = scheduleEdit.collaborators.filter((c) => c.id !== userId);
+                setSchedule(scheduleEdit)
+            }
         })
+    }
+
+    const onClickCopyLink = (link) => {
+        navigator.clipboard.writeText(link).catch(err => console.log(err))
     }
 
     useEffect(() => {
@@ -249,7 +267,7 @@ export default function schedule({api}) {
                             <QRCodeSVG value={schedule.qrcode_link} size={130} fgColor="#315B7C"/>
                         </div>
                         <button className="button schedule__btn schedule__btn-gray schedule__btn-open"
-                                onClick={() => navigator.clipboard.writeText(schedule.qrcode_link)}>
+                                onClick={() => onClickCopyLink(schedule.qrcode_link)}>
                             Копировать ссылку
                         </button>
                     </>
@@ -281,7 +299,7 @@ export default function schedule({api}) {
                                         return (
                                             <label key={index} htmlFor={"management__coach-checkbox-" + index}>
                                                 <div key={index} className="management__coach-item">
-                                                    {(collaborator.avatar?.length > 0) ?
+                                                    {(collaborator.avatar?.length > 0 || collaborator.url?.length > 0) ?
                                                       <Image loader={loaderImgUrl} src={collaborator?.url || collaborator?.avatar} alt="" className="management__coach-img" width={35} height={35}/>
                                                       : <div className="management__coach-noavatar"
                                                                style={{"background": collaborator?.gender === "m" ? "#315B7C" : "#FF5561"}}>{collaborator.firstname[0]}{collaborator.lastname[0]}</div>}

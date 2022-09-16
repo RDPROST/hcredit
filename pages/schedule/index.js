@@ -251,6 +251,10 @@ export default function schedule({api}) {
             })
     }
 
+    const onClickCopyLink = (link) => {
+        navigator.clipboard.writeText(link).catch(err => console.log(err))
+    }
+
     useEffect(() => {
         if (dataSchedules.length > 0 && maxHeight === 450) {
             let children = Array.from(scheduleList.current.children)
@@ -481,7 +485,7 @@ export default function schedule({api}) {
                                         <QRCodeSVG value={schedule.qrcode_link} size={130} fgColor="#315B7C"/>
                                     </div>
                                     <button className="button schedule__btn"
-                                            onClick={() => navigator.clipboard.writeText(schedule.qrcode_link)}>
+                                            onClick={() => onClickCopyLink(schedule.qrcode_link)}>
                                         Копировать ссылку
                                     </button>
                                     {visitCollaborator?.length > 0 ? (
