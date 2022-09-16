@@ -1500,11 +1500,11 @@ label{
   border-radius: 10px;
 }
 
-.management__coach-noavatar, .schedule__img{
+.management__coach-noavatar, .schedule__img-text{
   position: relative;
 }
 
-.management__coach-noavatar:hover::after, .schedule__img:hover::after {
+.management__coach-noavatar:hover::after, .schedule__img-text:hover::after {
   content: attr(data-title);
   position: absolute;
   right: 120%;
@@ -1515,6 +1515,6 @@ label{
   padding: 5px 10px;
   border: 1px solid #D6DBE0;
   color: #315B7C;
-  width: 150px;
+  width: 170px;
   text-align: center;
 }

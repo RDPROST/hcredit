@@ -389,8 +389,8 @@ export default function schedule({api}) {
                                         <ScheduleSelect status={item.state_id} makers={item.trainer} eventId={item.id}
                                                         api={api} setStatusSchedule={setStatusSchedule}/>
                                         {item.trainer[0]?.avatar ?
-                                            <Image loader={loaderImgUrl} className="schedule__img" src={item.trainer[0]?.avatar} alt=""
-                                                 width={35} height={35} data-title={item.trainer[0]?.fullname}/> : <div className="management__coach-noavatar"
+                                            <p className="schedule__img-text" data-title={item.trainer[0]?.fullname}><Image loader={loaderImgUrl} className="schedule__img" src={item.trainer[0]?.avatar} alt=""
+                                                      width={35} height={35}/></p> : <div className="management__coach-noavatar"
                                                                                  style={{"background": item.trainer[0]?.gender === "m" ? "#315B7C" : "#FF5561"}} data-title={item.trainer[0]?.fullname}>{item.trainer[0]?.firstname[0]}{item.trainer[0]?.lastname[0]}</div>}
                                     </div>
                                 )
