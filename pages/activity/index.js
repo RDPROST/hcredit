@@ -66,6 +66,7 @@ export default function Activity({api}) {
                     item.person_id = data.person_id;
                     item.person_lastname = data.person_lastname;
                     item.person_firstname = data.person_firstname;
+                    item.person_fullname = data.person_fullname;
                 } else {
                     item.archive = data.archive;
                 }

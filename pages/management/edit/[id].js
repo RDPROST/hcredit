@@ -240,7 +240,7 @@ export default function Edit({api}) {
                                       <input type="text" placeholder="Не заполнено..." id="management__coach" list="management__activity-list" className="management__input" defaultValue={searchActivity} value={searchActivity} onChange={onChangeSearchActivity} name="activity"/>
                                       <datalist id="management__activity-list">
                                           {dataActivities ? dataActivities.data?.map((activity, index) => {
-                                              return <option key={index} value={activity.title}>{activity.id}</option>
+                                              return <option key={index} value={activity.title}>{activity.code}</option>
                                           }) : null}
                                       </datalist>
                                       <label htmlFor="management__coach" className="management__title">Назначить
@@ -253,7 +253,7 @@ export default function Edit({api}) {
                                                  onChange={onChangeSearchCoach} onKeyDown={onClickAddCoach}/>
                                           <datalist id="management__coach-list">
                                               {dataSearchCoach ? dataSearchCoach.map((coach, index) => {
-                                                  return <option key={index} value={coach.fullname}>{coach.id}</option>
+                                                  return <option key={index} value={coach.fullname}>{coach.code}</option>
                                               }) : null}
                                           </datalist>
                                           <button className="management__btn" type={"button"}
@@ -310,7 +310,7 @@ export default function Edit({api}) {
                                           <datalist id="management__collaborator-list">
                                               {dataSearchCollaborator ? dataSearchCollaborator.map((collaborator, index) => {
                                                   return <option key={index}
-                                                                 value={collaborator.fullname}>{collaborator.id}</option>
+                                                                 value={collaborator.fullname}>{collaborator.code}</option>
                                               }) : null}
                                           </datalist>
                                           <button className="management__btn" type={"button"}

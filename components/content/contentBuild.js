@@ -213,7 +213,7 @@ export default function ContentBuild({person_fullname, person_firstname, person_
                             <input type="text" id="responsible" placeholder="Введите ФИО" list="info__responsible-list" className="info__input" defaultValue={person_fullname || user_fullname} disabled={action === "create"} value={responsibleValue} onChange={onChangeSearchResponsible} required/>
                             <datalist id="info__responsible-list">
                                 {responsibleData ? responsibleData.map((coach, index) => {
-                                    return <option key={index} value={coach.fullname}>{coach.id}</option>
+                                    return <option key={index} value={coach.fullname}>{coach.code}</option>
                                 }) : null}
                             </datalist>
                             <label htmlFor="info__time" className="info__label">Длительность активности, мин</label>
