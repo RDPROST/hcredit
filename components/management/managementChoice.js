@@ -1,7 +1,7 @@
 export default function managementChoice({activeChoice, setActiveChoice}){
     return (
         <div className="management__choices">
-            <div className={activeChoice === 1 ? "management__choice management__choice_active" : "management__choice"} onClick={()=>setActiveChoice(1)}>
+            <a href={process.env.NEXT_PUBLIC_HOSTNAME + "/view_doc.html?mode=doc_type&object_id=7115061029214433478#/"} className={activeChoice === 1 ? "management__choice management__choice_active" : "management__choice"} >
                 <div className="management__choice-img">
                     <svg width="75" height="75" viewBox="0 0 75 75" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g clipPath="url(#clip0_4706_2393)">
@@ -18,7 +18,7 @@ export default function managementChoice({activeChoice, setActiveChoice}){
                 <p className="management__choice-text">
                     Электронный курс или тестирование
                 </p>
-            </div>
+            </a>
             <div className={activeChoice === 2 ? "management__choice management__choice_active" : "management__choice"} onClick={()=>setActiveChoice(2)}>
                 <div className="management__choice-img">
                     <svg width="75" height="75" viewBox="0 0 75 75" fill="none" xmlns="http://www.w3.org/2000/svg">
