@@ -2,33 +2,49 @@
 
 # dependencies
 /node_modules
+/project/node_modules
 /.pnp
+/project/.pnp
 .pnp.js
+/project/.pnp.js
 
 # testing
 /coverage
+/project/coverage
 
 # next.js
 /.next/
+/project/.next/
 /out/
+/project/out/
 
 # production
 /build
+/project/build
 
 # misc
 .DS_Store
+/project/.DS_Store
 *.pem
+/project/*.pem
 
 # debug
 npm-debug.log*
+/project/npm-debug.log*
 yarn-debug.log*
+/project/yarn-debug.log*
 yarn-error.log*
+/project/yarn-error.log*
 .pnpm-debug.log*
+/project/.pnpm-debug.log*
 
 # local env files
 .env*.local
+/project/.env*.local
 
 # vercel
 .vercel
+/project/.vercel
 
 .idea
+/project/.idea
