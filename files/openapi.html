@@ -1,0 +1,1866 @@
+﻿<%
+	function doError(iCode, sMessage, iHTTPCode)
+	{
+		Request.SetRespStatus(OptInt(iHTTPCode, 400), "Error");
+
+		Response.Write('{"code":' + StrReal(OptInt(iCode,-1)) + ',"message":' + CodeLiteral(sMessage,'"') +'}');
+
+		Cancel();
+	}
+
+
+	function BuildBorisSchemaForObject(xmObjectPARAM, xmFormElemPARAM, bSchemaPARAM, aSkipPropPARAM, aIncludePropPARAM)
+	{
+		function _doBuild(xmObject, xmFormElem, bSchema, aSkipProp, aIncludeProp, _depth)
+		{
+			function getDeepInclude(_aIncludeProp, _sProp, _curDepth)
+			{
+				if (_curDepth > 0)
+				{
+					var deepInclude = undefined;
+					if (_aIncludeProp != undefined)
+					{
+						deepInclude = ArraySelect(_aIncludeProp, "StrBegins(This, '" + _sProp + "/')");
+						if (ArrayCount(deepInclude) > 0)
+							deepInclude = ArrayExtract(deepInclude, "StrRightRangePos(This, " +(StrLen(_sProp) + 1)+ ")");
+						else if (_aIncludeProp.indexOf(_sProp) >= 0)
+							deepInclude = undefined;
+					}
+					return deepInclude;
+				}
+				else
+					return _aIncludeProp;
+			}
+
+			function describeIt(oNode, sTitle)
+			{
+				if (sTitle != "")
+				{
+					if (curLng == null)
+						curLng = lngs.GetChildByKey("english").items;
+					oNode.desc = tools.get_field_title(sTitle, curLng);
+				}
+				return oNode;
+			}
+
+			if (xmFormElem === null)
+				xmFormElem = xmObject.FormElem;
+
+			var xmElem, oParam, aInclCache, oResult = null;
+
+			if (xmFormElem.Type == "")
+			{
+				var iChildCount = ArrayCount(xmFormElem);
+				for (xmElem in xmFormElem)
+				if (!xmElem.IsMethod && !xmElem.IsTemp && (aSkipProp == undefined || aSkipProp.indexOf(xmElem.Name) < 0))
+				{
+					if (xmElem.IsMultiple)
+					{
+						if (iChildCount > 1)
+						{
+							if (aIncludeProp == undefined || ArrayOptFind(aIncludeProp, "This == '" + xmElem.Name + "' || StrBegins(This, '" + xmElem.Name + "/')") != undefined)
+							{
+								if (oResult === null)
+								{
+									oResult = new Object;
+									if (bSchema)
+									{
+										describeIt(oResult, xmFormElem.Title);
+										oResult.type = "object";
+										oResult.name = xmElem.Name;
+										oResult.is_array = false;
+										oResult.properties = new Array();
+									}
+								}
+
+								if (bSchema)
+								{
+									oParam = _doBuild(null, xmElem, bSchema, undefined, getDeepInclude(aIncludeProp, xmElem.Name, _depth), _depth+1);
+								}
+								else
+								{
+									oParam = new Array();
+									for (xmSubElem in ArraySelectByKey(xmObject, xmElem.Name, "Name"))
+									{
+										oParam11 = _doBuild(xmSubElem, xmElem, bSchema, undefined, getDeepInclude(aIncludeProp, xmElem.Name, _depth), _depth+1);
+										if (oParam11 !== null)
+											oParam.push(oParam11);
+									}
+								}
+
+								if (oParam !== null)
+								{
+									if (bSchema)
+									{
+										//oParam = ({"type": "array", "items": oParam});
+										oParam.is_array = true;
+										oResult.properties.push(oParam);
+									}
+									else
+									{
+										oResult.SetProperty(xmElem.Name, oParam);
+									}
+								}
+							}
+						}
+						else
+						{
+							if (bSchema)
+							{
+								oResult = new Object;
+								describeIt(oResult, xmFormElem.Title);
+								oResult.name = xmFormElem.Name;
+								oResult.type = "object";
+								oResult.is_array = true;
+								oResult.properties = new Array();
+								var xmSubElem;
+								for (xmSubElem in xmElem)
+								if (!xmSubElem.IsMethod && !xmSubElem.IsTemp)
+								{
+									oParam = _doBuild(null, xmSubElem, bSchema, undefined, getDeepInclude(aIncludeProp, xmFormElem.Name, _depth), _depth+1);
+									if (oParam !== null)
+									{
+										oResult.properties.push(oParam);
+									}
+								}
+							}
+							else
+							{
+								oResult = new Array();
+								var xmSubElem;
+								for (xmSubElem in xmObject)
+								{
+									oParam = _doBuild(xmSubElem, xmElem, bSchema, undefined, getDeepInclude(aIncludeProp, xmFormElem.Name, _depth), _depth+1);
+									if (oParam !== null)
+										oResult.push(oParam);
+								}
+							}
+						}
+					}
+					else if (aIncludeProp == undefined || ArrayOptFind(aIncludeProp, "This == '" + xmElem.Name + "' || StrBegins(This, '" + xmElem.Name + "/')") != undefined)
+					{
+
+						oParam = _doBuild((bSchema ? null : xmObject.Child(xmElem.Name) ), xmElem, bSchema, undefined, getDeepInclude(aIncludeProp, xmElem.Name, _depth), _depth+1);
+
+						if (oParam != null)
+						{
+							if (oResult === null)
+							{
+								oResult = new Object;
+								if (bSchema)
+								{
+									describeIt(oResult, xmFormElem.Title);
+									oResult.type = "object";
+									oResult.name = xmFormElem.Name;
+									oResult.is_array = false;
+									oResult.properties = new Array();
+								}
+							}
+							if (bSchema)
+								oResult.properties.push(oParam);
+							else
+								oResult.SetProperty(xmElem.Name, oParam);
+
+						}
+					}
+				}
+			}
+			else if (aIncludeProp == undefined || aIncludeProp.indexOf(xmFormElem.Name) >= 0)
+			{
+
+				if (bSchema)
+				{
+					oResult = describeIt(({"name": xmFormElem.Name, "type": xmFormElem.Type}), xmFormElem.Title);
+					if (xmFormElem.IsMultiple)
+						oResult.is_array = true;
+				}
+				else if (xmObject !== null)
+				{
+					oResult = xmObject.Value;
+				}
+			}
+
+			return oResult;
+		}
+
+		return _doBuild(xmObjectPARAM, xmFormElemPARAM, bSchemaPARAM, aSkipPropPARAM, aIncludePropPARAM, 0);
+	}
+
+	function AssignObjectToBoris(oObject, teElem, aSkipProp, aIncludeProp)
+	{
+		var sProp, vPropVal, xmField, xmMultiFld, oPrp;
+		for (sProp in oObject)
+		if ((aSkipProp == undefined || aSkipProp.indexOf(sProp) < 0) && (aIncludeProp == undefined || ArrayOptFind(aIncludeProp, "This == '" + sProp + "' || StrBegins(This, '" + sProp + "/')") != undefined))
+		{
+			xmField = teElem.OptChild(sProp);
+			if (xmField == undefined)
+			{
+				xmField = teElem.FormElem.Child(sProp);
+				if (xmField.IsMultiple)
+					xmMultiFld = GetObjectProperty(teElem, sProp);
+				else
+					xmField = undefined;
+			}
+
+			vPropVal = oObject.GetProperty(sProp);
+
+			switch(xmField.Type)
+			{
+				case "date":
+					try
+					{
+						vPropVal = ParseDate(vPropVal);
+					}
+					catch(err)
+					{
+						vPropVal = null;
+					}
+				case "real":
+				case "string":
+				case "bool":
+				case "integer":
+					if (xmField.IsMultiple && ObjectType(vPropVal) == "JsArray")
+					{
+						xmMultiFld.Clear();
+						for (oPrp in vPropVal)
+						{
+							if (DataType(oPrp) == xmField.Type)
+								xmMultiFld.Add().Value = oPrp;
+						}
+					}
+					else if (DataType(vPropVal) == xmField.Type)
+						xmField.Value = vPropVal;
+					else if (vPropVal == null || vPropVal == "")
+						xmField.Clear();
+
+					break;
+
+				case "":
+					if (aIncludeProp == undefined)
+						xmMultiFld = undefined
+					else
+					{
+						xmMultiFld = ArraySelect(aIncludeProp, "StrBegins(This, '" + sProp + "/')");
+						if (ArrayCount(xmMultiFld) > 0)
+							xmMultiFld = ArrayExtract(xmMultiFld, "StrRightRangePos(This, " +(StrLen(sProp) + 1)+ ")")
+						else
+							xmMultiFld = undefined;
+					}
+					switch(ObjectType(vPropVal))
+					{
+						case "JsObject":
+							AssignObjectToBoris(vPropVal, xmField, undefined, xmMultiFld);
+							break;
+						case "JsArray":
+							xmField.Clear();
+							for (oPrp in vPropVal)
+							{
+								AssignObjectToBoris(oPrp, xmField.AddChild(), undefined, xmMultiFld);
+							}
+							break;
+					}
+					break;
+			}
+
+		}
+	}
+
+	function checkParam(sType, vValue, oParamObject_WriteValueWhyNot)
+	{
+		var bOk = true;
+		var val = undefined;
+
+		if (IsArray(vValue))
+		{
+			val = new Array();
+			var e, o = (oParamObject_WriteValueWhyNot != null ? (new Object) : null);
+			for (e in vValue)
+			{
+				if ((bOk = checkParam(sType, e, o, false)))
+				{
+					if (o != null)
+						val.push(o.__cmpVal);
+				}
+				else
+					break;
+			}
+		}
+		else
+			switch (sType)
+			{
+				case "integer":
+					val = OptInt(vValue);
+					bOk = (val != undefined && (val + "") == vValue);
+					break;
+				case "real":
+					val = OptReal(vValue);
+					bOk = (val != undefined && (val + "") == vValue);
+					break;
+				case "bool":
+					if (vValue === "true" || vValue === true)
+					{
+						bOk = true; val = true;
+					}
+					else if (vValue === "false" || vValue === false)
+					{
+						bOk = true; val = false;
+					}
+					else
+						bOk = false;
+					break;
+				default:
+					val = vValue + "";
+					break;
+			}
+		if (bOk && oParamObject_WriteValueWhyNot != null)
+			oParamObject_WriteValueWhyNot.__cmpVal = val;
+		return bOk;
+	}
+
+	function CallCRUDFn(fnName, aParameters, oFn)
+	{
+		var i = fnName.lastIndexOf("_");
+		var sCatalog = StrRangePos(fnName, 0, i);
+		var oResult, sCommand = StrRightRangePos(fnName, i + 1);
+
+		switch(sCommand)
+		{
+			case "create":
+
+				var oBodyData = aParameters[0];
+
+				var docNew = tools.new_doc_by_name(sCatalog, false);
+				docNew.BindToDb( DefaultDb );
+
+				AssignObjectToBoris(oBodyData, docNew.TopElem, oFn.exclude, oFn.include);
+
+				docNew.Save();
+
+				return ({"id": docNew.DocID});
+
+				break;
+			case "read":
+				try
+				{
+					var iID = Int(aParameters[0]);
+					var teObj = OpenDoc(UrlFromDocID(iID)).TopElem;
+				}
+				catch(_x_)
+				{
+					doError(152, "Object open error. Function " + fnName + ". " + ExtractUserError(_x_))
+				}
+
+				if (oFn.GetOptProperty("check_access") == true && !tools_web.check_access(teObj, oAuth.GuestID, oAuth.Guest, Request.Session))
+				{
+					doError(153, "You have no access to object " + iID + ". Function " + fnName, 403);
+				}
+
+				oResult = BuildBorisSchemaForObject(teObj, null, false, oFn.exclude, oFn.include);
+
+				break;
+			case "update":
+
+				try
+				{
+					var iID = Int(aParameters[0]);
+					var oBodyData = aParameters[1];
+					var docUpdate = OpenDoc(UrlFromDocID(iID));
+
+					if (docUpdate.TopElem.Name != sCatalog)
+						throw "invalid object ID";
+				}
+				catch(_x_)
+				{
+					doError(155, "Object open error. Function " + fnName + ". " + ExtractUserError(_x_))
+				}
+
+				if (oFn.GetOptProperty("check_access") == true && !tools_web.check_access(docUpdate.TopElem, oAuth.GuestID, oAuth.Guest, Request.Session))
+				{
+					doError(156, "You have no access to object " + iID + ". Function " + fnName, 403);
+				}
+
+				AssignObjectToBoris(oBodyData, docUpdate.TopElem, oFn.exclude, oFn.include);
+
+				docUpdate.Save();
+
+				break;
+			case "delete":
+
+				try
+				{
+					var iID = Int(aParameters[0]);
+
+					if (oFn.GetOptProperty("check_access") == true && !tools_web.check_access(OpenDoc(UrlFromDocID(iID)).TopElem, oAuth.GuestID, oAuth.Guest, Request.Session))
+					{
+						doError(158, "You have no access to object " + iID + ". Function " + fnName, 403);
+					}
+
+					DeleteDoc(UrlFromDocID(iID));
+				}
+				catch(_x_)
+				{
+					doError(159, "Object delete error. Function " + fnName + ". " + ExtractUserError(_x_))
+				}
+
+				break;
+			case "list":
+
+				var sQuery = "for $elem in " + sCatalog + "s ";
+
+				var p,v, aQueryConditions = new Array();
+				var oQueryBody = aParameters[0];
+
+				for (p in oQueryBody)
+				{
+					v = oQueryBody.GetProperty(p);
+					if (IsArray(v))
+						aQueryConditions.push(("MatchSome($elem/" + p + ",(" + ArrayMerge(v, "XQueryLiteral(This)", ",") + "))"));
+					else
+						aQueryConditions.push(("$elem/" + p + "=" + XQueryLiteral(v)));
+				}
+
+				if (ArrayCount(aQueryConditions) > 0)
+					sQuery += "where " + ArrayMerge(aQueryConditions, "This", " and ");
+
+				sQuery += " return $elem";
+
+				oResult = XQuery(sQuery);
+				if (ArrayCount(aParameters) > 2)
+				{
+					p = aParameters[1];
+					v = aParameters[2];
+
+					if (p >= 0 && v > 0)
+					{
+						oResult = ArrayRange(oResult, p, v);
+					}
+				}
+				break;
+		}
+
+		return oResult;
+	}
+
+	function gatherOAPIMeta(sProfile, aTags, sAuth)
+	{
+		function generateCRUDFunctions(xmlMeta, aTagNames)
+		{
+			var sTags = ArraySelectByKey(xmlMeta, "tag", "Name");
+
+			if (ArrayCount(sTags) > 0)
+				sTags = ArrayMerge(sTags, "This.OptAttrValue('name')", ";");
+			else
+				sTags = null;
+
+			var aFns = new Array()
+			if (aTagNames == undefined || ArrayOptFind(aTagNames, "StrContains(" + CodeLiteral(sTags) + ", This)") != undefined)
+			{
+
+				var sName = xmlMeta.Name;
+				var sAccess = xmlMeta.Child("access");
+				var sAccessCheck = sAccess.OptAttrValue("check");
+				sAccess = StrLowerCase(sAccess.Value);
+				var oFn, o, oE, fldObjectType = null;
+
+				var xmlLib = xmlMeta.OptChild("lib");
+				if (xmlLib != undefined)
+					xmlLib = Trim(xmlLib.Value);
+				else
+					xmlLib = "";
+
+				var aInclude = xmlMeta.OptChild("include");
+				if (aInclude != undefined)
+				{
+					aInclude = Trim(aInclude.Value).split(";");
+					if (ArrayCount(aInclude) == 0)
+						aInclude = undefined;
+				}
+				var aExclude = xmlMeta.OptChild("exclude");
+				if (aExclude != undefined)
+				{
+					aExclude = Trim(aExclude.Value).split(";");
+					if (ArrayCount(aExclude) == 0)
+						aExclude = undefined;
+				}
+
+				if (StrContains(sAccess, "c")) //create
+				{
+					oFn = ({"method": "post", "tags": sTags});
+					oFn.desc = "Create object " + CodeLiteral(xmlMeta.Name);
+					oFn.path = xmlMeta.Name;
+					oFn.fn = xmlMeta.Name + "_create";
+					oFn.flags = "solidbody";
+					oFn.result = ({"type": "json", "is_array": false, "properties": [{"name": "id", "type": "integer", "desc": "New object ID"}]});
+
+					oFn.exclude = ArrayUnion((aExclude == undefined ? (new Array()) : aExclude), ["id", "doc_info"]);
+					oFn.include = aInclude;
+
+					fldObjectType = common.exchange_object_types.GetChildByKey(xmlMeta.Name);
+					oE = BuildBorisSchemaForObject(null, FetchForm(fldObjectType.form_url).TopElem , true, oFn.exclude, oFn.include);
+
+					oFn.parameters = oE.properties;
+					for (o in oE.properties)
+					{
+						o.source = "body";
+					}
+
+					if (xmlLib != "")
+						oFn.library = xmlLib;
+					else
+						oFn.library = "#CRUD#";
+
+					aFns.push(setAuth(oFn));
+				}
+				if (StrContains(sAccess, "r")) //read
+				{
+					oFn = ({"method": "get", "tags": sTags, "parameters": [{"name": "id", "type": "integer", "desc": (xmlMeta.Name + " ID"), "required": true, "source": "path"}]});
+					oFn.desc = "Read object " + CodeLiteral(xmlMeta.Name);
+					oFn.path = xmlMeta.Name + "/{id}";
+					oFn.fn = xmlMeta.Name + "_read";
+					oFn.exclude = aExclude;
+					oFn.include = aInclude;
+
+					if (StrContains(sAccessCheck, "r"))
+						oFn.check_access = true;
+
+					if (fldObjectType == null)
+						fldObjectType = common.exchange_object_types.GetChildByKey(xmlMeta.Name);
+
+					oFn.result = BuildBorisSchemaForObject(null, FetchForm(fldObjectType.form_url).TopElem , true, aExclude, aInclude);
+					oFn.result.type = "json";
+
+					if (xmlLib != "")
+						oFn.library = xmlLib;
+					else
+						oFn.library = "#CRUD#";
+
+					aFns.push(setAuth(oFn));
+
+				}
+				if (StrContains(sAccess, "u")) //update
+				{
+					oFn = ({"method": "patch", "tags": sTags});
+					oFn.desc = "Update object " + CodeLiteral(xmlMeta.Name);
+					oFn.path = xmlMeta.Name + "/{id}";
+					oFn.fn = xmlMeta.Name + "_update";
+					oFn.flags = "solidbody";
+					oFn.exclude = ArrayUnion((aExclude == undefined ? (new Array()) : aExclude), ["id", "doc_info"]);
+					oFn.include = aInclude;
+
+					if (StrContains(sAccessCheck, "u"))
+						oFn.check_access = true;
+
+					if (fldObjectType == null)
+						fldObjectType = common.exchange_object_types.GetChildByKey(xmlMeta.Name);
+					oE = BuildBorisSchemaForObject(null, FetchForm(fldObjectType.form_url).TopElem , true, oFn.exclude, oFn.include);
+
+					oFn.parameters = ([{"name": "id", "type": "integer", "desc": (xmlMeta.Name + " ID"), "required": true, "source": "path"}]);
+					for (o in oE.properties)
+					{
+						o.source = "body";
+						oFn.parameters.push(o);
+					}
+
+
+					if (xmlLib != "")
+						oFn.library = xmlLib;
+					else
+						oFn.library = "#CRUD#";
+
+					oFn.result = {"type": "void"};
+
+					aFns.push(setAuth(oFn));
+				}
+				if (StrContains(sAccess, "d")) //delete
+				{
+					oFn = ({"method": "delete", "tags": sTags, "parameters": [{"name": "id", "type": "integer", "desc": (xmlMeta.Name + " ID"), "required": true, "source": "path"}]});
+					oFn.desc = "Delete object " + CodeLiteral(xmlMeta.Name);
+					oFn.path = xmlMeta.Name + "/{id}";
+					oFn.fn = xmlMeta.Name + "_delete";
+					oFn.exclude = aExclude;
+					oFn.include = aInclude;
+
+					if (StrContains(sAccessCheck, "d"))
+						oFn.check_access = true;
+
+					if (xmlLib != "")
+						oFn.library = xmlLib;
+					else
+						oFn.library = "#CRUD#";
+
+					oFn.result = {"type": "void"};
+
+					aFns.push(setAuth(oFn));
+				}
+				if (StrContains(sAccess, "l")) //xquery
+				{
+					oFn = ({"method": "get", "tags": sTags, "parameters": []});
+					oFn.desc = "List of objects " + CodeLiteral(xmlMeta.Name);
+					oFn.flags = "solidquery";
+
+					oFn.path = xmlMeta.Name;
+					oFn.fn = xmlMeta.Name + "_list";
+					oFn.exclude = aExclude;
+					oFn.include = aInclude;
+
+					if (StrContains(sAccessCheck, "l"))
+						oFn.check_access = true;
+
+					if (fldObjectType == null)
+						fldObjectType = common.exchange_object_types.GetChildByKey(xmlMeta.Name);
+
+					oE = BuildBorisSchemaForObject(null, FetchForm(tools.get_object_form_url(fldObjectType.name, true)).TopElem.Child(0), true, aExclude, aInclude);
+
+					var prop;
+					for (o in oE.properties)
+						if (o.type != "object")
+						{
+							prop = ({"name": o.name, "type": o.type, "required": false, "source": "query"});
+							if (o.HasProperty("desc"))
+								prop.desc = o.desc;
+							if (o.GetOptProperty("is_array") === true)
+								prop.is_array = true;
+							oFn.parameters.push(prop);
+						}
+
+					oFn.parameters.push({"name": "{Paging}"});
+
+					oFn.result = oE;
+					oFn.result.type = "json";
+					oFn.result.is_array = true;
+
+					if (xmlLib != "")
+						oFn.library = xmlLib;
+					else
+						oFn.library = "#CRUD#";
+
+					aFns.push(setAuth(oFn));
+				}
+			}
+			return aFns;
+		}
+		function generateExternalFunction(xmlMeta, aTagNames)
+		{
+			var xmlProp, oProp, oParam, aXmlArray = ArraySelectByKey(xmlMeta, "tag", "Name");
+			if (ArrayCount(aXmlArray) > 0)
+				oProp = ArrayMerge(aXmlArray, "This.OptAttrValue('name')", ";");
+			else
+				oProp = null;
+
+			if (aTagNames != undefined && ArrayOptFind(aTagNames, "StrContains(" + CodeLiteral(oProp) + ", This)") == undefined)
+			{
+				return null;
+			}
+
+			var oFn = new Object;
+			if (oProp != null)
+				oFn.tags = oProp;
+			oFn.method = xmlMeta.OptAttrValue("method", "get");
+			oFn.path = oFn.fn = xmlMeta.Name;
+
+			oProp = xmlMeta.Child("lib");
+			oFn.library = oProp.Value;
+			if ((oProp = oProp.OptAttrValue("function", "")) != "")
+			{
+				oFn.fn = oProp;
+			}
+
+			oProp = Trim(xmlMeta.OptAttrValue("path", ""));
+			if (oProp != "")
+			{
+				oFn.path = oProp + (StrEnds(oProp, "/") ? "" : "/") + oFn.path;
+			}
+
+			oFn.parameters = null;
+			aXmlArray = ArraySelectByKey(xmlMeta, "param", "Name");
+
+
+			oProp = xmlMeta.OptAttrValue("flags", "");
+			if (oProp != "")
+				oFn.flags = StrLowerCase(oProp);
+
+			if (ArrayCount(aXmlArray) > 0)
+			{
+				oFn.parameters  = new Array();
+				for (xmlProp in aXmlArray)
+				{
+					oParam = xmlProp.OptAttrValue("name");
+					oProp = ({"name": oParam, "type": xmlProp.OptAttrValue("type"), "desc": xmlProp.OptAttrValue("desc"), "source": xmlProp.OptAttrValue("source", "body")});
+					oFn.parameters.push(oProp);
+
+					if (xmlProp.OptAttrValue("source") == "path")
+					{
+						oFn.path += "/{" + oParam + "}";
+						oProp.required = true;
+					}
+					else
+						oProp.required = tools_web.is_true(xmlProp.OptAttrValue("required"));
+
+					if (!oProp.required)
+					{
+						oParam = xmlProp.OptAttrValue("default");
+						if (oParam != "")
+						{
+							if (!checkParam(xmlProp.OptAttrValue("type"), oParam, (oParam = new Object)))
+								doError(5, "Function " + CodeLiteral(oFn.fn) + " parameter " + CodeLiteral(oProp.name) + " has invalid default value");
+							else
+								oProp.SetProperty("default", oParam.__cmpVal);
+						}
+					}
+				}
+			}
+			oFn.desc = xmlMeta.OptAttrValue("desc");
+
+
+            var xmlResult = xmlMeta.Child("result");
+            function deepArrayProps(prop) {
+				var res = {"name": prop.OptAttrValue("name"),"type": prop.OptAttrValue("type"),"is_array": tools_web.is_true(prop.OptAttrValue("array")), "desc": prop.OptAttrValue("desc") }
+
+				if(prop.ChildNum > 0){
+					res.properties = new Array();
+					 for(_prop in prop ){
+						res.properties.push(deepArrayProps(_prop))
+					 }
+				}
+
+				return res
+			}
+			oFn.result = {"type": xmlResult.OptAttrValue("type"), "is_array": tools_web.is_true(xmlResult.OptAttrValue("array"))};
+			if (xmlResult.ChildNum > 0)
+			{
+				oFn.result.properties = new Array();
+				for (xmlProp in xmlResult)
+				{
+                    _xmlProp = deepArrayProps(xmlProp)
+                    oFn.result.properties.push(_xmlProp);
+
+                }
+			}
+			return setAuth(oFn);
+		}
+
+		function setAuth(oFn)
+		{
+			if (sAuth != undefined && sAuth != "")
+			switch (sAuth)
+			{
+				case "basic":
+					oFn.__auth = "basic";
+					break;
+				break;
+			}
+
+			return oFn;
+		}
+
+		var xmlProfile, r, sProfileUrl = "x-local://wtv/oapi/profiles/" + sProfile + ".xml";
+		if (!FilePathExists( UrlToFilePath( sProfileUrl)))
+		{
+			r = tools.get_xhttp_ini('OAPI-SCHEMAS-DIR-PATH');
+			if (r != undefined)
+			{
+				sProfileUrl = UrlAppendPath(FilePathToUrl(r), sProfile + ".xml")
+			}
+		}
+
+		var aFunctions = new Array();
+		try
+		{
+			xmlProfile = OpenDoc(sProfileUrl).TopElem;
+		}
+		catch(_x_)
+		{
+			doError(1, "invalid or missing profile " + CodeLiteral(sProfileUrl) + " type");
+		}
+
+		if (aTags != undefined && ArrayCount(aTags) == 0)
+			aTags = undefined;
+
+		var xmlNode, xmlPack = xmlProfile.OptChild("objects");
+		if (xmlPack != undefined)
+			for (xmlNode in xmlPack)
+			{
+				r = generateCRUDFunctions(xmlNode, aTags);
+				aFunctions = ArrayUnion(aFunctions, r);
+			}
+
+		xmlPack = xmlProfile.OptChild("functions");
+		if (xmlPack != undefined)
+			for (xmlNode in xmlPack)
+			{
+				r = generateExternalFunction(xmlNode, aTags);
+				if (r != null)
+					aFunctions.push(r);
+			}
+
+		return aFunctions;
+	}
+
+	function getProfilePlan(iProfile)
+	{
+		var teProfile;
+		if (DataType(iProfile) == "integer")
+			teProfile = OpenDoc(UrlFromDocID(iProfile)).TopElem;
+		else
+			teProfile = iProfile;
+
+		var fldMethodAccess, aProp, oPlan = new Object;
+		for (fldMethodAccess in teProfile.method_access_list)
+			if (fldMethodAccess.library_profile.HasValue)
+			{
+				aProp = oPlan.GetOptProperty(fldMethodAccess.library_profile.Value)
+				if (aProp == undefined)
+				{
+					aProp = new Array();
+					oPlan.SetProperty(fldMethodAccess.library_profile.Value, aProp);
+				}
+				aProp.push(fldMethodAccess.PrimaryKey.Value);
+			}
+
+		return oPlan;
+	}
+
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/*
+	if (!global_settings.settings.web_api_settings.use_api.Value)
+	{
+		Request.SetRespStatus(403, "Forbidden");
+		Cancel();
+	}
+	*/
+
+	Response.ContentType = "application/json";
+
+	Response.AddHeader("Access-Control-Allow-Origin", Request.Header.GetOptProperty("Origin", "*"));
+	Response.AddHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, Depth, User-Agent, X-File-Size, X-Requested-With, If-Modified-Since, X-File-Name, Cache-Control, Cookie, Connection, Host");
+	Response.AddHeader("Access-Control-Allow-Credentials", "true");
+	Response.AddHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE");
+	Response.AddHeader("Access-Control-Max-Age", "60");
+
+	var oElem, oFunction, oBodyElem, aFunctionList = new Array();
+	var curLng = null;
+
+	/***************** FILL DATA UP HERE SOMEWAY*********/
+	///////////////////////
+	/*
+
+	{
+		"tags": "<string>;<string>;....",			// array of strings semicolon separated
+		"method": "<string>",						// HTTP method LOWERCASE (http 2.0 style)
+		"path": "<string>",							// path w/wo params
+		"desc": "<string>",
+		"library": "<string>", 						// url to script
+		"fn": "<string>", 							// function name
+		"flags": "<string>", 						// flags: SolidBody
+		"parameters": [								// order correspond with fn attributes order
+			{
+				"name": "<string>", 				// param name
+				"type": "<string>",					// "integer", "number", "string", "boolean"
+				"desc": "<string>",
+				"required": "<bool>",
+				"source": "<string>"				// path, query, body
+			},
+			......
+		],
+		"result": {
+			"type": "<string>", 					// "json", "text", "void"
+			"is_array": "<bool>",					// matters only if type=json
+			"properties": [
+				{
+					"name": "<string>",				// property name
+					"type": "<integer>",			// "integer", "number", "string", "boolean"
+					"desc": "<string>"
+				},
+				.......
+			]
+
+		}
+	}
+
+	*/
+	////////////////////////////
+
+
+
+
+
+
+
+
+
+
+	7/////////////////////// FIND CONTEXT (AND CACHE)/////////////////////////////////
+
+	function DetectGuest(RequestSrc)
+	{
+		var teGuest = null;
+		var APP_ID = Trim(RequestSrc.Header.GetOptProperty("x-app-id", RequestSrc.QueryString.GetOptProperty("app-id", "")));
+		if (APP_ID != "")
+		{
+			teGuest = ArrayOptFirstElem(tools.xquery("for $elem in remote_applications where $elem/app_id = " +XQueryLiteral(UrlDecode(APP_ID))+ " return $elem/id,$elem/__data"));
+			if (teGuest != undefined)
+			{
+				teGuest = OpenDoc(UrlFromDocID(teGuest.PrimaryKey)).TopElem;
+			}
+			else
+				teGuest = null;
+		}
+		return teGuest;
+	}
+
+	function Authorize(RequestSrc, oOptions)
+	{
+		function _doAuthorize(_teCredential, _Request)
+		{
+			var AuthLogin, AuthPassword, oRes = new Object;
+			oRes.HasAccess = false;
+			oRes.Auth = undefined;
+			oRes.Code = "";
+
+			switch (_teCredential.type)
+			{
+				case "basic":
+					oRes.Auth = _teCredential.type.Value;
+					AuthLogin = _Request.AuthLogin;
+					if (AuthLogin != "")
+					{
+						if (AuthLogin == _teCredential.login.Value)
+						{
+							AuthPassword = _Request.AuthPassword;
+							if (AuthPassword == undefined || tools.make_password(_teCredential.password, true) != tools.make_password( AuthPassword, false ))
+							{
+								oRes.Code = "Invalid password";
+							}
+							else
+							{
+								oRes.HasAccess = true;
+							}
+						}
+						else
+							oRes.Code = "Invalid login";
+					}
+					else
+						oRes.Code = "empty_login";
+					break;
+				case "unauthorized":
+					oRes.Auth = _teCredential.type.Value;
+					oRes.HasAccess = true;
+					oRes.Code = "OK";
+					break;
+				default:
+					oRes.Code = "Unknown auth type " + CodeLiteral(_teCredential.type);
+					break;
+			}
+
+			return oRes;
+		}
+
+		var oCredObject, oReturn = ({"GuestID": null, "Guest": null, "Code": "", "Credentials": ([])});
+        //alert("RequestSrc: "+tools.object_to_text(RequestSrc, "json"));
+        var teGuest = DetectGuest(RequestSrc);
+		if (teGuest != null)
+		{
+			oReturn.GuestType = "app";
+			oReturn.HasAccess = false;
+			oReturn.Guest = teGuest;
+			oReturn.GuestID = teGuest.id.Value;
+
+			var fldCredential, docCredential, oCredRes;
+			for (fldCredential in teGuest.credentials)
+			{
+				docCredential = tools.open_doc(fldCredential.PrimaryKey);
+				if (docCredential != undefined && docCredential.TopElem.remote_security_profile_id.HasValue)
+				{
+					oCredRes = _doAuthorize(docCredential.TopElem, RequestSrc);
+					if (oCredRes.HasAccess)
+					{
+						oCredRes.ID = docCredential.DocID;
+						oCredRes.SecurityProfile = docCredential.TopElem.remote_security_profile_id.Value;
+						oReturn.HasAccess = true;
+					}
+					else
+					{
+						oReturn.Code += (oReturn.Code != "" ? ";" : "") + oCredRes.Code;
+					}
+
+					oReturn.Credentials.push(oCredRes);
+				}
+			}
+		}
+		else //USER
+		{
+           // alert("openapi USER");
+            var oUserInit = tools_web.user_init(RequestSrc,  RequestSrc.Query);
+			oReturn.GuestType = "user";
+			oReturn.Auth = oUserInit.auth_type;
+			oReturn.HasAccess = oUserInit.access;
+			oReturn.Code = oUserInit.error_code;
+
+			if (oUserInit.access)
+			{
+                oReturn.Credentials.push({"HasAccess":true,"Auth":"unauthorized","Code":"OK","ID":7117527723146801397,"SecurityProfile":7117658742293090584});
+				oReturn.GuestID = Session.Env.curUserID;
+				oReturn.Guest = Session.Env.curUser;
+			}
+
+		}
+		return oReturn;
+	}
+
+
+	/*
+
+	r = '{\n';
+	//r += ('\t"oapipath":' + CodeLiteral(sPath, '"') + ",\n");
+	r += ('\t"Url":' + CodeLiteral(Request.Url, '"') + ",\n");
+	r += ('\t"UrlHost":' + CodeLiteral(Request.UrlHost, '"') + ",\n");
+	r += ('\t"Method":' + CodeLiteral(Request.Method, '"') + ",\n");
+	r += ('\t"RemoteIP":' + CodeLiteral(Request.RemoteIP, '"') + ",\n");
+	r += ('\t"RespContentType":' + CodeLiteral(Request.RespContentType, '"') + ",\n");
+
+	r += ('\t"Header":' + EncodeJson(Request.Header) + ",\n");
+	r += ('\t"QueryString":' + EncodeJson(Request.QueryString) + ",\n");
+	r += ('\t"Body":' + CodeLiteral(Request.Body, '"'));
+
+
+	//r += (',\n\t"FUNCTION":' + EncodeJson(oFunction));
+
+	//r += (',\n\t"parameters":' + EncodeJson(aParameters));
+
+	r += ('\n}');
+
+	alert(r);
+
+	*/
+
+
+
+
+
+	/**************************************************/
+	var sPath = Trim(Base64Decode(Request.QueryString.GetOptProperty("_p+", "")));
+	if (sPath != "")
+	{
+
+
+
+
+
+		/////////////////////// EXECUTION /////////////////////////////////
+
+		function getSourceUrl()
+		{
+			return StrRangePos(Request.Url, 0, Request.Url.indexOf("/openapi.html")) + "/oapi/" + sPath;
+		}
+
+		function checkPath(oFn, aPathReal)
+		{
+			function normalizePath(sPathVar)
+			{
+				if (StrBegins(sPathVar, "/"))
+					sPathVar = StrRightRangePos(sPathVar, 1);
+				if (StrEnds(sPathVar, "/"))
+					sPathVar = StrLeftRange(sPathVar, StrLen(sPathVar)-1);
+
+				return sPathVar.split("/");
+			}
+			var aPathTemplate = normalizePath(oFn.path);
+			aPathReal = normalizePath(aPathReal);
+
+			var i, sPathElem, iLen = ArrayCount(aPathReal);
+			if (iLen == ArrayCount(aPathTemplate))
+			{
+				for (i = 0; i < iLen; i++)
+				{
+					sPathElem = aPathTemplate[i];
+					if (StrBegins(sPathElem, "{") && StrEnds(sPathElem, "}"))
+					{
+						if (oFn.parameters == null || (sPathElem = ArrayOptFindByKey(oFn.parameters, StrRangePos(sPathElem, 1, StrLen(sPathElem)-1), "name")) == undefined || sPathElem.source != "path" || !checkParam(sPathElem.type, aPathReal[i], sPathElem))
+						{
+							return false;
+						}
+					}
+					else if (sPathElem != aPathReal[i])
+					{
+						return false;
+					}
+				}
+				return true;
+			}
+			return false;
+		}
+
+
+		/////////////////////// AUTH /////////////////////////////////
+
+
+		var oAuth = Authorize(Request);
+		if (!oAuth.HasAccess)
+		{
+			if (StrContains(oAuth.Code, "empty_login"))
+			{
+				//Response.SetWrongAuth();
+			}
+			else
+			{
+				// Request.SetRespStatus(401, "Unauthorized");
+			}
+			Cancel();
+		}
+
+
+		switch (oAuth.GuestType)
+		{
+			case "user":
+			{
+                // ****** d'not know what to do with usr yet ******
+                for (oBodyElem in oAuth.Credentials)
+				{
+					oFunction = getProfilePlan(   oBodyElem.SecurityProfile    );
+
+					for (oElem in oFunction)
+					{
+						aFunctionList = ArrayUnion(aFunctionList, gatherOAPIMeta(oElem, oFunction.GetProperty(oElem), oBodyElem.Auth));
+					}
+				}
+			}
+			break;
+			case "app":
+			{
+				for (oBodyElem in oAuth.Credentials)
+				{
+					oFunction = getProfilePlan(   oBodyElem.SecurityProfile    );
+
+					for (oElem in oFunction)
+					{
+						aFunctionList = ArrayUnion(aFunctionList, gatherOAPIMeta(oElem, oFunction.GetProperty(oElem), oBodyElem.Auth));
+					}
+				}
+			}
+			break;
+		}
+
+
+		oFunction = ArrayOptFind(aFunctionList, "checkPath(This, " +CodeLiteral(sPath)+ ") && This.method == " + CodeLiteral(StrLowerCase(Request.Method)));
+
+		if (oFunction != undefined)
+		{
+			var oParam, aParameters = new Array();
+			oBodyElem = null;
+			var vRElem = null;
+			var bSolidBodyFlag = false;
+			var bSolidQueryFlag = StrContains(oFunction.GetOptProperty("flags"), "solidquery");
+
+			if (IsArray(oFunction.GetOptProperty("parameters")))
+			for (oElem in oFunction.parameters)
+			{
+				if (!StrBegins(oElem.name, "{"))
+				{
+					switch (oElem.source)
+					{
+						case "path":
+							oParam = oElem.GetOptProperty("__cmpVal");
+							if (oParam != undefined)
+							{
+								aParameters.push(oParam);
+							}
+							else
+								doError(10, "Missing param " + CodeLiteral(oElem.name) + " from path. Uri: " + getSourceUrl());
+							break;
+						case "query":
+							oParam = Request.QueryString.GetOptProperty(oElem.name);
+							if (bSolidQueryFlag && vRElem == null)
+							{
+								vRElem = new Object;
+								aParameters.push(vRElem);
+							}
+							if (oParam == undefined)
+							{
+								if (oElem.GetOptProperty("required") == true)
+									doError(11, "Missing param " + CodeLiteral(oElem.name) + " from query. Uri: " + getSourceUrl());
+								else
+								{
+									oParam = oElem.GetOptProperty("default");
+									if (bSolidQueryFlag)
+									{
+										if (oParam != undefined)
+											vRElem.SetProperty(oElem.name, oParam);
+									}
+									else
+										aParameters.push((oParam == undefined ? null : oParam));
+								}
+							}
+							else
+							{
+								if (oElem.GetOptProperty("is_array", false))
+								{
+									oParam = String(oParam).split(",");
+								}
+								oParam = ({"val": oParam});
+								if (checkParam(oElem.type, oParam.val, oParam))
+								{
+									if (bSolidQueryFlag)
+										vRElem.SetProperty(oElem.name, oParam.__cmpVal);
+									else
+										aParameters.push(oParam.__cmpVal);
+								}
+								else
+								{
+									doError(12, "Invalid type of parameter " + CodeLiteral(oElem.name) + " from query. Uri: " + getSourceUrl());
+								}
+							}
+
+							break;
+						case "body":
+							if (bSolidBodyFlag)
+							{
+								break;
+							}
+
+							if (oBodyElem == null)
+							{
+								try
+								{
+									oBodyElem = ParseJson(Request.Body);
+									if (ObjectType(oBodyElem) != "JsObject")
+										throw "suxx";
+								}
+								catch(_x_)
+								{
+									doError(13, "Invalid or unexpected JSON in body. Uri: " + getSourceUrl())
+								}
+								bSolidBodyFlag = StrContains(oFunction.GetOptProperty("flags"), "solidbody");
+								if (bSolidBodyFlag)
+								{
+									aParameters.push(oBodyElem);
+									break;
+								}
+							}
+
+							oParam = oBodyElem.GetOptProperty(oElem.name);
+							if (oParam == undefined)
+							{
+								if (oElem.GetOptProperty("required") == true)
+									doError(14, "Missing param " + CodeLiteral(oElem.name) + " from body JSON. Uri: " + getSourceUrl());
+								else
+									aParameters.push(oElem.GetOptProperty("default", null));
+							}
+							else
+							{
+								if (DataType(oParam) === oElem.type)
+								{
+									aParameters.push(oParam);
+								}
+								else
+									doError(15, "Invalid type for parameter " + CodeLiteral(oElem.name) + " from body JSON. Uri: " + getSourceUrl());
+							}
+
+							break;
+					}
+
+				}
+				else //RESERVED PARAMETERS
+				{
+					switch(oElem.name)
+					{
+						case "{Guest}":
+							aParameters.push(oAuth.Guest);
+							break;
+						case "{GuestID}":
+							aParameters.push(oAuth.GuestID);
+                            break;
+                        case "{Request}":
+							aParameters.push(Request);
+							break;
+
+						case "{Paging}":
+							oParam = ({"val": Request.QueryString.GetOptProperty("offset", "")});
+							if (oParam.val != "")
+							{
+								if (!checkParam("integer", oParam.val, oParam))
+									doError(17, "Invalid type for parameter 'offset' from query. Uri: " + getSourceUrl());
+								else
+									oParam = oParam.__cmpVal
+							}
+							else
+								oParam = null;
+
+							aParameters.push(oParam)
+
+							oParam = ({"val": Request.QueryString.GetOptProperty("limit", "")});
+							if (oParam.val != "")
+							{
+								if (!checkParam("integer", oParam.val, oParam))
+									doError(17, "Invalid type for parameter 'limit' from query. Uri: " + getSourceUrl());
+								else
+									oParam = oParam.__cmpVal
+							}
+							else
+								oParam = null;
+
+							aParameters.push(oParam)
+
+							break;
+						default:
+							doError(16, "Invalid predefined parameter " + CodeLiteral(oElem.name) + " in description. Contact administrator. Uri: " + getSourceUrl());
+					}
+				}
+			}
+
+
+
+			// CALL CALL CALL CALL CALL //////////////////
+			//oFunction.library;
+			//oFunction.fn;
+			//aParameters;
+
+			if (oFunction.library == "#CRUD#")
+			{
+				oBodyElem = CallCRUDFn(oFunction.fn, aParameters, oFunction);
+			}
+			else
+			{
+				try
+				{
+                   // DropFormsCache( '*' + oFunction.library + '*' );
+					var spxmlCodeLib = OpenCodeLib(oFunction.library);
+					oBodyElem = CallObjectMethod(spxmlCodeLib, oFunction.fn, aParameters);
+				}
+				catch(_x_)
+				{
+					vRElem = ExtractUserError(_x_);
+					if (!StrBegins(vRElem, "[") || (oParam = vRElem.indexOf("]", 1)) <= 0 || (oParam = OptInt(StrRangePos(vRElem, 1, oParam))) <= 1000)
+						oParam = 50;
+
+					doError(oParam, ("Library function call error. Library url: " + oFunction.library + "; function name: " + oFunction.fn + "; Error detail: " + vRElem));
+				}
+			}
+			/////////////////////////////////////////////
+
+			switch (oFunction.result.type)
+			{
+				case "text":
+					Response.ContentType = "text/plain";
+					Response.Write(String(oBodyElem));
+					break;
+
+				case "json":
+
+					function getObjectFilledWithProps(srcObj, aProperties, srctype, oFn)
+					{
+						var prop,val,subelem,mval,dt, o = new Object;
+						if (aProperties != null)
+						{
+							if (srctype == null)
+								srctype = ObjectType(srcObj);
+							switch (srctype)
+							{
+								case "JsObject":
+									for (prop in aProperties)
+									{
+										val = srcObj.GetOptProperty(prop.name)
+										if (val !== undefined)
+										{
+											if (prop.GetOptProperty("is_array") === true)
+											{
+												if (val != null)
+												{
+													if(ObjectType(val) == "JsArray")
+													{
+														mval = new Array();
+														for (subelem in val)
+															if (subelem != null)
+															{
+																if (DataType(subelem) == prop.type)
+																	mval.push(subelem);
+																else
+																	doError(65, ("Library function serialize result error. Library url: " + oFunction.library + "; function name: " + oFunction.fn + "; Node " +CodeLiteral(prop.name)+ " has invalid type. Expected: array of " + prop.type + "; recieved: array of " + DataType(subelem)));
+															}
+														o.SetProperty(prop.name, mval);
+													}
+													else
+														doError(64, ("Library function serialize result error. Library url: " + oFunction.library + "; function name: " + oFunction.fn + "; Node " +CodeLiteral(prop.name)+ " has invalid type. Expected: array of " + prop.type + "; recieved: " + DataType(val)));
+												}
+											}
+											else if (prop.type == "date" && DataType(val) == "string" && val != null)
+											{
+												o.SetProperty(prop.name, val);
+											}
+											else if (val == null || DataType(val) == prop.type)
+												o.SetProperty(prop.name, val);
+											else
+												doError(63, ("Library function serialize result error. Library url: " + oFunction.library + "; function name: " + oFunction.fn + "; Property " +CodeLiteral(prop.name)+ " has invalid type. Expected: " + prop.type + "; recieved: " + DataType(val)));
+										}
+										else if (prop.GetOptProperty("required") == true)
+										{
+											doError(62, ("Library function serialize result error. Library url: " + oFunction.library + "; function name: " + oFunction.fn + "; Property " +CodeLiteral(prop.name)+ " not found in result."));
+										}
+									}
+									break;
+								case "XmElem":
+									for (prop in aProperties)
+									{
+										if (srcObj.ChildExists(prop.name))
+										{
+											val = GetObjectProperty(srcObj, prop.name);
+											if (val.IsMultiElem)
+											{
+												if (prop.GetOptProperty("is_array") === true)
+												{
+													mval = new Array();
+													for (subelem in val)
+													{
+														if (prop.type == subelem.Type)
+															mval.push(subelem.Value);
+														else
+															doError(68, ("Library function serialize result error. Library url: " + oFunction.library + "; function name: " + oFunction.fn + "; Node " +CodeLiteral(prop.name)+ " has invalid type. Expected: array of " + prop.type + "; recieved: array of " + subelem.Type));
+													}
+													o.SetProperty(prop.name, mval);
+												}
+												else
+													doError(67, ("Library function serialize result error. Library url: " + oFunction.library + "; function name: " + oFunction.fn + "; Node " +CodeLiteral(prop.name)+ " has invalid type. Expected: " + prop.type + "; recieved: array"));
+											}
+											else if (val.Type == prop.type)
+											{
+												o.SetProperty(prop.name, val.Value);
+											}
+											else if (prop.type == "object" && val.Type == "")
+											{
+												o.SetProperty(prop.name, BuildBorisSchemaForObject(val, null, false));
+											}
+											else
+											{
+												doError(66, ("Library function serialize result error. Library url: " + oFunction.library + "; function name: " + oFunction.fn + "; Node " +CodeLiteral(prop.name)+ " has invalid type. Expected: " + prop.type + "; recieved: " + val.Type));
+											}
+										}
+										else if (prop.GetOptProperty("required") == true)
+											doError(69, ("Library function serialize result error. Library url: " + oFunction.library + "; function name: " + oFunction.fn + "; Node " +CodeLiteral(prop.name)+ " not found in result."));
+									}
+									break;
+								default:
+									doError(61, ("Library function serialize result error. Library url: " + oFunction.library + "; function name: " + oFunction.fn + "; Invalid element type: " + srctype));
+							}
+						}
+						return o;
+					}
+
+					vRElem = ObjectType(oBodyElem);
+
+					if (oFunction.result.is_array)
+					{
+						if (IsArray(oBodyElem))
+						{
+							vRElem = (vRElem == "XmLdsSeq" || vRElem == "XmHookSeq" ? "XmElem" : null);
+							oElem = new Array();
+							for (oParam in oBodyElem)
+							{
+								oElem.push(getObjectFilledWithProps(oParam, oFunction.result.GetOptProperty("properties", null), vRElem, oFunction));
+							}
+						}
+						else
+						{
+							doError(61, ("Library function serialize result error. Library url: " + oFunction.library + "; function name: " + oFunction.fn + ";  Expected: array, recieved: " + vRElem));
+						}
+					}
+					else
+					{
+						if (vRElem == "JsObject" || vRElem == "XmElem")
+						{
+							oElem = getObjectFilledWithProps(oBodyElem, oFunction.result.GetOptProperty("properties", null), vRElem, oFunction);
+						}
+						else
+						{
+							doError(60, ("Library function serialize result error. Library url: " + oFunction.library + "; function name: " + oFunction.fn + ";  Expected: object, recieved: " + vRElem));
+						}
+					}
+					oElem = ({"code": 0, "message": "OK", "result": oElem});
+					Response.Write(EncodeJson(oElem));
+
+					break;
+				case "void":
+					oElem = ({"code": 0, "message": "OK"});
+					Response.Write(EncodeJson(oElem));
+					break;
+				default:
+					doError(55, "Unknown result type " + CodeLiteral(oFunction.result.type));
+					break;
+			}
+
+		}
+		else
+		{
+			doError(null, ("no function for uri: " + getSourceUrl()), 404);
+		}
+	}
+	else
+	{
+
+		/////////////////////// DEFINITION /////////////////////////////////
+
+		function BorisFormat2JSONFormatObject(oFormatDefinition)
+		{
+			var oFormat = new Object;
+			switch (oFormatDefinition.type)
+			{
+				case "integer":
+					oFormat.format = "int64";
+				case "string":
+					oFormat.type = oFormatDefinition.type;
+					break;
+				case "date":
+					oFormat.type = "string";
+					break;
+				case "bool":
+					oFormat.type = "boolean";
+					break;
+				case "real":
+					oFormat.type = "number";
+					oFormat.format = "double";
+					break;
+				default:
+					oFormat = null;
+					break;
+			}
+			if (oFormat != null && oFormatDefinition.GetOptProperty("is_array") === true)
+				oFormat = ({"type": "array", "items": oFormat});
+
+			return oFormat;
+		}
+
+		function BuildRecursiveSchema(oProperty)
+		{
+			var vVal, oSubProp, oSetProp, oSchema = null;
+			switch (oProperty.type)
+			{
+				case "object":
+				case "json":
+					vVal = new Object;
+					if (oProperty.GetOptProperty("is_array") === true)
+						oSchema = ({"type": "array", "items": {"type": "object", "properties": vVal}});
+					else
+						oSchema = ({"type": "object", "properties": vVal});
+
+					for (oSubProp in oProperty.properties)
+					{
+						vVal.SetProperty(oSubProp.name, BuildRecursiveSchema(oSubProp));
+						if (oSubProp.GetOptProperty("required") == true)
+						{
+							if (!vVal.HasProperty("required"))
+								vVal.required = new Array();
+							vVal.required.push(oSubProp.name);
+						}
+					}
+					break;
+				default:
+					oSchema = BorisFormat2JSONFormatObject(oProperty);
+					break;
+			}
+
+			if (oSchema == null)
+				doError(-20, "invalid property " + oProperty.name + " type");
+
+			vVal = oProperty.GetOptProperty("desc");
+			if (vVal != undefined)
+				oSchema.description = vVal;
+
+			return oSchema;
+		}
+		var oSubElem, oParameter, oProp;
+
+
+
+		/////////////////////// FUNC LIST /////////////////////////////////
+
+		var oApi = ({"openapi": "3.0.0","info": {"title": "WebSoft HCM OpenAPI", "version": "0.0.1", "description": "WebSoft HCM OpenAPI 3.0 interface."},"paths": {},"components": {"securitySchemes": {}}});
+
+
+
+
+		oBodyElem = DetectGuest(Request);
+		if (oBodyElem != null)
+		{
+			for (oSubElem in tools.xquery("for $elem in credentials where MatchSome($elem/id, (" + ArrayMerge(oBodyElem.credentials, "XQueryLiteral(This.PrimaryKey)", ",") + ")) return $elem/id,$elem/__data"))
+			{
+				oParameter = OpenDoc(UrlFromDocID(oSubElem.PrimaryKey)).TopElem;
+				oProp = undefined;
+				switch(oParameter.type)
+				{
+					case "basic":
+						oProp = "basic";
+						break;
+				}
+
+				oFunction = getProfilePlan(oParameter.remote_security_profile_id.Value);
+
+				for (oElem in oFunction)
+				{
+					aFunctionList = ArrayUnion(aFunctionList, gatherOAPIMeta(oElem, oFunction.GetProperty(oElem), oProp));
+				}
+			}
+
+			oApi.info.description = "WebSoft HCM OpenAPI 3.0 interface for client " +CodeLiteral(oBodyElem.name)+ " [" +oBodyElem.app_id+ "]" + "."
+
+		}
+		else // ***** d'nt know about usr yet ****
+		{
+			"WebSoft HCM OpenAPI 3.0 interface for unknown client."
+		}
+
+
+
+
+
+
+
+
+
+		var aNameTags = new Array();
+		var authPacks = null;
+
+
+		oApi.components.schemas = ({"ErrorModel": {"type": "object", "properties": {"code": {"type": "integer"}, "message": {"type": "string"}}, "required": ["message", "code"]}});
+		oApi.components.parameters = ({"xAppIdParam": {"in": "header", "name": "x-app-id", "required": false, "schema": {"type": "string"}, "description": "Client ID (in header)"},"xAppIdQParam": {"in": "query", "name": "app-id", "required": false, "schema": {"type": "string"}, "description": "Client ID (in query string)"},"offsetParam": {"in": "query", "name": "offset", "required": false, "schema": {"type": "integer", "minimum": 0}, "description": "Query offset"}, "limitParam": {"in": "query", "name": "limit", "required": false, "schema": {"type": "integer", "minimum": 1}, "description": "Querty page limit"}});
+		oApi.servers = ([{"url": (StrRangePos(Request.Url, 0, Request.Url.indexOf("/openapi.html")) + "/oapi")}]);
+
+
+		for (oFunction in aFunctionList)
+		{
+			sPath = (StrBegins(oFunction.path, "/") ? "" : "/") + oFunction.path;
+
+			oElem = oApi.paths.GetOptProperty(sPath);
+			if (oElem == undefined)
+			{
+				oElem = new Object;
+				oApi.paths.SetProperty(sPath, oElem);
+			}
+			oSubElem = new Object;
+			oElem.SetProperty(StrLowerCase(oFunction.method), oSubElem);
+
+			if (oFunction.GetOptProperty("tags", null) != null && oFunction.tags != "")
+			{
+				oBodyElem = oFunction.tags.split(";");
+				aNameTags = ArrayUnion(aNameTags, oBodyElem);
+				oSubElem.tags = oBodyElem;
+			}
+			oProp = oFunction.GetOptProperty("desc");
+			if (oProp != undefined)
+				oSubElem.description = oProp;
+			//oSubElem.operationId = oFunction.fn; //UNIQUE!
+
+			oSubElem.parameters = ([]);
+
+			oBodyElem = null;
+			if (oFunction.parameters != null)
+			for (oElem in oFunction.parameters)
+			{
+				if (!StrBegins(oElem.name, "{"))
+				switch (oElem.GetOptProperty("source"))
+				{
+					case "path":
+						if (StrContains(sPath, "{" + oElem.name + "}"))
+						{
+							oParameter = new Object;
+							oParameter.name = oElem.name;
+							oProp = oElem.GetOptProperty("desc");
+							if (oProp != undefined)
+								oParameter.description = oProp;
+							oParameter.SetProperty("in", "path");
+							oParameter.required = true;
+
+							oParameter.schema = BorisFormat2JSONFormatObject(oElem);
+							if (oParameter.schema == null)
+								doError(-10, "invalid path parameter " + oElem.name + " type; Function " + oFunction.fn);
+
+							if (oParameter.schema.type == "array")
+							{
+								oParameter.style = "form";
+								oParameter.explode = false;
+							}
+							//oSubElem.parameters = oSubElem.GetOptProperty("parameters", ([]));
+							oSubElem.parameters.push(oParameter);
+						}
+						else
+							doError(-11, "parameter " + oElem.name + " not found in path; Function " + oFunction.fn);
+
+						break;
+					case "body":
+						if (oBodyElem == null)
+						{
+							oBodyElem = ({"type": "object", "properties": {}});
+							oSubElem.requestBody = ({"content": {"application/json": {"schema": oBodyElem}}});
+						}
+						oParameter = BuildRecursiveSchema(oElem);//BorisFormat2JSONFormatObject(oElem);
+						if (oParameter == null)
+							doError(-12, "invalid body parameter " + oElem.name + " type; Function " + oFunction.fn);
+
+						oProp = oElem.GetOptProperty("desc");
+						if (oProp != undefined)
+							oParameter.description = oProp;
+						oBodyElem.properties.SetProperty(oElem.name, oParameter);
+						if (oElem.GetOptProperty("required") == true)
+						{
+							oBodyElem.required = oBodyElem.GetOptProperty("required", ([]));
+							oBodyElem.required.push(oElem.name);
+						}
+						else
+						{
+							oProp = oElem.GetOptProperty("default", null);
+							if (oProp != null)
+								oParameter.SetProperty("default", oProp);
+						}
+						break;
+					case "query":
+						oParameter = new Object;
+						oParameter.name = oElem.name;
+						oProp = oElem.GetOptProperty("desc");
+						if (oProp != undefined)
+							oParameter.description = oProp;
+
+						oParameter.SetProperty("in", "query");
+						if (oParameter.required = (oElem.GetOptProperty("required") == true))
+						{
+							oBodyElem.required = oBodyElem.GetOptProperty("required", ([]));
+							oBodyElem.required.push(oElem.name);
+						}
+						else
+						{
+							oProp = oElem.GetOptProperty("default", null);
+							if (oProp != null)
+								oParameter.SetProperty("default", oProp);
+						}
+
+						oParameter.schema = BorisFormat2JSONFormatObject(oElem);
+						if (oParameter.schema == null)
+							doError(-10, "invalid query parameter " + oElem.name + " type. Function " + oFunction.fn);
+
+						if (oParameter.schema.type == "array")
+						{
+							oParameter.style = "form";
+							oParameter.explode = false;
+						}
+
+						//oSubElem.parameters = oSubElem.GetOptProperty("parameters", ([]));
+						oSubElem.parameters.push(oParameter);
+						break;
+				}
+				else
+				{
+					switch(oElem.name)
+					{
+						case "{Paging}":
+							oSubElem.parameters.push({"$ref": "#/components/parameters/offsetParam"}, {"$ref": "#/components/parameters/limitParam"});
+							break;
+						case "{Guest}":
+						case "{GuestID}":
+                        case "{Request}":
+							break;
+						default:
+							doError(-10, "Invalid predefined parameter " + CodeLiteral(oElem.name) + " in description. Contact administrator.");
+					}
+				}
+			}
+
+			oSubElem.parameters.push({"$ref": "#/components/parameters/xAppIdParam"}/*, {"$ref": "#/components/parameters/xAppIdQParam"}*/);
+
+			oSubElem.responses = new Object;
+
+			switch (oFunction.result.type)
+			{
+				case "text":
+					oBodyElem = new Object;
+					oSubElem.responses.SetProperty(200, oBodyElem);
+					oBodyElem.content = ({"text/plain": {"schema": {"type": "string"}}});
+					oBodyElem.description = "OK";
+					break;
+				case "void":
+				case "json":
+					oBodyElem = new Object;
+					oSubElem.responses.SetProperty(200, oBodyElem);
+
+					oElem = ({"code": {"type": "integer", "format": "int32","description": "Error Code"},"message": {"type": "string", "description": "Error message"}});
+					oBodyElem.content = ({"application/json": {"schema": {"type": "object", "properties": oElem}}});
+					oBodyElem.description = "OK";
+
+					if (oFunction.result.type != "void")
+					{
+						oElem.result = BuildRecursiveSchema(oFunction.result);
+						oElem.result.description = "Result";
+					}
+					break;
+				default:
+					doError(-15, "Unknown result type " + CodeLiteral(oFunction.result.type) + "; Function " + oFn.fn);
+					break;
+			}
+
+			oSubElem.responses.SetProperty("default", ({
+				"description": "Error",
+				"content": {
+					"application/json": {
+						"schema":{
+							"$ref": "#/components/schemas/ErrorModel"
+						}
+					}
+				}
+			}));
+
+			oElem = oFunction.GetOptProperty("__auth");
+			if (oElem != undefined)
+			{
+				oParameter = null;
+				switch(oElem)
+				{
+					case "basic":
+						oParameter = ({"wtauth_basic": ([])});
+						if (authPacks == null)
+							authPacks = new Object;
+						authPacks.basic = 1;
+
+						oSubElem.security = ([oParameter]);
+
+						oSubElem.responses.SetProperty("401", ({
+							"description": "Unauthorized"
+						}));
+
+						break;
+					case "unauthorized":
+						break;
+				}
+
+
+			}
+		}
+
+		aNameTags = ArraySelectDistinct(aNameTags, "This");
+		if (ArrayCount(aNameTags) > 0)
+		{
+			oApi.tags = new Array();
+			for (oFunction in aNameTags)
+			{
+				oElem = common.access_block_types.GetOptChildByKey(oFunction);
+				if (oElem != undefined)
+					oElem = CodeLiteral(OptEval(oElem.name)) + " [" +oFunction+ "]";
+				else
+					oElem = oFunction;
+
+				oApi.tags.push(({"name": oFunction, "description": ("Block " + oElem), "externalDocs": {"description": ("Read more about " + oElem), "url": "http://news.websoft.ru/_wt/library"}}));
+			}
+		}
+
+		if (authPacks != null)
+		{
+			oApi.components.securitySchemes = new Object;
+
+			for (oElem in authPacks)
+			{
+				switch (oElem)
+				{
+					case "basic":
+						oApi.components.securitySchemes.SetProperty("wtauth_basic", ({"type": "http","scheme": "basic"}));
+						break;
+				}
+			}
+		}
+		Response.Write(EncodeJson(oApi));
+	}
+%>

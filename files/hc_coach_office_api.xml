@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<profile>
+	<functions>
+		<Init desc="" method="get">
+			<param name="{GuestID}"/>
+			<param name="{Guest}" />
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</Init>
+		
+		<GetInfoForCreateEvent desc="" method="get">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</GetInfoForCreateEvent>
+
+        <GetActivities desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</GetActivities>
+
+		<SaveEduProgram desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</SaveEduProgram>
+
+		<ChangeStateEduProgram desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</ChangeStateEduProgram>
+
+		<GetCollaboratorsForSaveEduProgram desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</GetCollaboratorsForSaveEduProgram>
+
+		<GetInfoPersonsEvent desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</GetInfoPersonsEvent>
+
+		<DeletePersonFromEvent desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</DeletePersonFromEvent>
+
+		<AddPersonFromEvent desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Guest}" />
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</AddPersonFromEvent>
+
+		<NotParticipatePersonFromEvent desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</NotParticipatePersonFromEvent>
+
+		<CreateAppointEvent desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</CreateAppointEvent>
+
+		<AddPersonToEventFromExcel desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</AddPersonToEventFromExcel>
+
+		<GetLectorsForCreateEvent desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</GetLectorsForCreateEvent>
+
+		<GetCollaboratorsForCreateEvent desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</GetCollaboratorsForCreateEvent>
+		
+		<GetCollaboratorByID desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</GetCollaboratorByID>
+
+		<GetListEvents desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</GetListEvents>
+
+		<GenerateQRLink desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</GenerateQRLink>
+		
+		<ExportListCollaboratorsFromEvent desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Guest}" />
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</ExportListCollaboratorsFromEvent>
+
+		<GetListEventsEduProgram desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</GetListEventsEduProgram>
+		
+		<ChangeStateEvent desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</ChangeStateEvent>
+		
+		<AssistCollaboratorsEvent desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</AssistCollaboratorsEvent>
+
+		<GetInfoEvent desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</GetInfoEvent>
+
+		<GetTrainersForEvent desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</GetTrainersForEvent>
+		
+		<GetEventByID desc="" method="post">
+			<param name="{GuestID}"/>
+			<param name="{Request}" />
+			<result type="text">
+				<property name="result" type="string"/>
+			</result>
+			<lib>x-local://wtv/oapi/libs/hc_coach_office_api.js</lib>
+			<tag name="pers"/>
+		</GetEventByID>
+	</functions>
+</profile>
