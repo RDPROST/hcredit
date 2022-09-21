@@ -162,6 +162,7 @@ export default function Edit({api}) {
 
         if (dataCoach.length === 0) {
             alert("Необходимо добавить тренера")
+            setIsSubmit(false);
             return
         }
 

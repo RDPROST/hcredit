@@ -142,6 +142,7 @@ export default function Management({api}) {
 
         if (dataCoach.length === 0) {
             alert("Необходимо добавить тренера")
+            setIsSubmit(false);
             return
         }
 
