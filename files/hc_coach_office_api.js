@@ -656,12 +656,6 @@ function AddPersonFromEvent(user_id, teUser, httpRequest) {
         ";
         oCheck = ArrayOptFirstElem(XQuery(sQuery));
 
-        // if (OptInt(docEvent.TopElem.max_person_num, null) == null || OptInt(docEvent.TopElem.max_person_num, null) > ArrayCount(docEvent.TopElem.collaborators)) {
-        //     return EncodeJson({ success: true, error: "", data: [] });
-        // } else {
-        //     return EncodeJson({ success: false, error: "Недостаточно мест для записи на мероприятие", data: [] });
-        // }
-
         if (oCheck != undefined) {
             oResOld = ArrayOptFirstElem(XQuery("sql: SELECT id FROM event_results ers WHERE ers.event_id = " + iEventID + " AND ers.person_id = " + iUserID));
 
@@ -1058,7 +1052,8 @@ function AddPersonToEventFromExcel(user_id, httpRequest) {
                             FROM \
                                 collaborators cs \
                                 INNER JOIN collaborator c ON c.id = cs.id \
-                            WHERE cs.code = '" + sCode + "' AND cs.fullname = '" + sFullname + "' \
+                            WHERE \
+                                cs.code = '" + sCode + "' AND cs.fullname = '" + sFullname + "' \
                         "));
 
                         if (oCollaborator != undefined) {
@@ -1151,6 +1146,19 @@ function GetLectorsForCreateEvent(user_id, httpRequest) {
         var aLectors = [];
 
         if (String(params.search) != "") {
+            oOrgID = ArrayOptFirstElem(XQuery("sql: \
+                SELECT TOP 1 rc.data.value('(//wvars/wvar[name=''org_id'']/value)[1]', 'varchar(max)') org_id \
+                FROM \
+                    remote_collections rcs \
+                    INNER JOIN remote_collection rc ON rc.id = rcs.id \
+                WHERE code = '_settings_homecredit' \
+            "));
+
+            iOrgID = oOrgID != undefined ? OptInt(oOrgID.org_id, 0) : 0;
+
+            doc = tools.open_doc(iOrgID);
+            sSearch = doc == undefined ? "" : " AND cs.org_id = " + iOrgID;
+
             sQuery = "sql: \
                 SELECT \
                     cs.id, \
@@ -1171,6 +1179,7 @@ function GetLectorsForCreateEvent(user_id, httpRequest) {
                     ISNULL(cs.is_dismiss, 0) = 0 \
                     AND ISNULL(cs.dismiss_date, '') = '' \
                     AND cs.fullname LIKE '%" + String(params.search) + "%' \
+                    " + sSearch + " \
                 ORDER BY cs.fullname \
             ";
             aResult = XQuery(sQuery);
@@ -1208,6 +1217,18 @@ function GetCollaboratorsForCreateEvent(user_id, httpRequest) {
         var aCollaborators = [];
 
         if (String(params.search) != "") {
+            oOrgID = ArrayOptFirstElem(XQuery("sql: \
+                SELECT TOP 1 rc.data.value('(//wvars/wvar[name=''org_id'']/value)[1]', 'varchar(max)') org_id \
+                FROM \
+                    remote_collections rcs \
+                    INNER JOIN remote_collection rc ON rc.id = rcs.id \
+                WHERE code = '_settings_homecredit' \
+            "));
+
+            iOrgID = oOrgID != undefined ? OptInt(oOrgID.org_id, 0) : 0;
+
+            doc = tools.open_doc(iOrgID);
+            sSearch = doc == undefined ? "" : " AND cs.org_id = " + iOrgID;
 
             sQuery = "sql: \
                 SELECT \
@@ -1226,6 +1247,7 @@ function GetCollaboratorsForCreateEvent(user_id, httpRequest) {
                     ISNULL(cs.is_dismiss, 0) = 0 \
                     AND ISNULL(cs.dismiss_date, '') = '' \
                     AND (cs.fullname LIKE '%" + String(params.search) + "%' OR cs.email LIKE '%" + String(params.search) + "%') \
+                    " + sSearch + " \
                 ORDER BY cs.fullname \
             ";
             aResult = XQuery(sQuery);
@@ -1820,9 +1842,11 @@ function ExportListCollaboratorsFromEvent(user_id, teUser, httpRequest) {
                 ers.person_position_name, \
                 CASE ers.is_assist WHEN 1 THEN 'Да' ELSE '' END assist, \
                 CASE ers.not_participate WHEN 1 THEN 'Да' ELSE '' END not_participate, \
-                er.data.value('(event_result/comment)[1]', 'varchar(max)') comment \
+                er.data.value('(event_result/comment)[1]', 'varchar(max)') comment, \
+                cs.code \
             FROM \
                 event_results ers \
+                INNER JOIN collaborators cs ON cs.id = ers.person_id \
                 INNER JOIN event_result er ON er.id = ers.id \
             WHERE \
                 ers.event_id = @eventID \
@@ -1837,6 +1861,7 @@ function ExportListCollaboratorsFromEvent(user_id, teUser, httpRequest) {
 
             var aTitleExcel = [
                 { name: "person_fullname", title: "ФИО сотрудника", width: 30 },
+                { name: "code", title: "Табельный номер", width: 30 },
                 { name: "person_position_name", title: "Подразделение", width: 50 },
                 { name: "assist", title: "Присутствие", width: 25 },
                 { name: "not_participate", title: "Отказался от участия", width: 25 },
